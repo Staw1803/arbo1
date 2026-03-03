@@ -1,67 +1,2103 @@
-// 1. Inicialização Real (Já estava no seu código)
-const _supabaseUrl = 'https://zbnpwicdgobxkvesgayr.supabase.co';
-const _supabaseKey = 'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc';
-const supabaseClient = supabase.createClient(_supabaseUrl, _supabaseKey);
+<!DOCTYPE html>
 
-let dadosAtuais = { temperatura: 0, umidade: 0 };
+<html lang="pt-BR">
 
-/* ====================== LOGIN POR CREDENCIAL ÚNICA ====================== */
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const token = document.getElementById('securityToken').value.toUpperCase().trim();
 
-        // Busca a empresa pelo token no banco
-        const { data: empresa, error } = await supabaseClient
-            .from('empresas')
-            .select('*')
-            .eq('id_acesso', token)
-            .single();
 
-        if (empresa) {
-            document.getElementById('loginModal').classList.remove('active');
-            document.querySelector('.content-layer').style.display = 'none';
-            document.getElementById('corporateDashboard').style.display = 'block';
-            
-            // Ativa a escuta real do ESP32
-            ativarRealtime();
-        } else {
-            document.getElementById('loginFeedback').innerHTML = 'Token Inválido.';
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>A.R.B.O. | Governança Térmica</title>
+
+    <!-- Google Fonts: Inter -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+
+    <!-- CSS ADICIONAL DO DASHBOARD (Branco e Preto Luxuoso) -->
+
+    <style>
+
+        .dashboard-container {
+
+            font-family: 'Inter', system-ui, sans-serif;
+
+            background: #FFFFFF;
+
+            color: #111111;
+
+            min-height: 100vh;
+
+            animation: fadeIn 0.8s ease forwards;
+
         }
-    });
-}
 
-/* ====================== RECEBENDO DADOS REAIS ====================== */
-function ativarRealtime() {
-    console.log("A.R.B.O. Online. Aguardando sensores...");
 
-    supabaseClient
-        .channel('db-changes')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leituras' }, payload => {
-            const leitura = payload.new;
-            
-            // 1. Atualiza o valor central (Temperatura)
-            const consumptionEl = document.getElementById('liveConsumptionValue');
-            if (consumptionEl) {
-                consumptionEl.innerHTML = `${leitura.temperatura} <span style="font-size:1.2rem;">°C</span>`;
+
+        @keyframes fadeIn {
+
+            from {
+
+                opacity: 0;
+
             }
 
-            // 2. Atualiza o ROI (Economia) baseado em dado real
-            const roiEl = document.getElementById('roiValue');
-            if (roiEl) {
-                let valorAtual = parseFloat(roiEl.innerText.replace('R$', '').replace('.', '').replace(',', '.'));
-                roiEl.innerText = (valorAtual + 0.02).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+
+            to {
+
+                opacity: 1;
+
             }
 
-            // 3. Atualiza a bolinha do Mapa Galáxia se for o RH
-            const bolhaRH = document.querySelector('.bubble'); 
-            if (bolhaRH && leitura.dispositivo_id === "vaso_rh_01") {
-                // Lógica de conformidade NR-17
-                bolhaRH.className = leitura.temperatura > 25 ? 'bubble red' : 'bubble green';
-            }
-        })
-        .subscribe();
-}
+        }
 
-// Suas funções de menu (Hamburger e Logout) continuam abaixo...
+
+
+        .dash-header {
+
+            background: rgba(255, 255, 255, 0.95);
+
+            backdrop-filter: blur(12px);
+
+            border-bottom: 1px solid #EBEBEB;
+
+            padding: 1rem 2rem;
+
+            display: flex;
+
+            align-items: center;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 100;
+
+            transition: all 0.3s ease;
+
+        }
+
+
+
+        .dash-logo-text {
+
+            font-size: 1.35rem;
+
+            font-weight: 800;
+
+            letter-spacing: -0.5px;
+
+            text-transform: uppercase;
+
+        }
+
+
+
+        .dash-logo-text span {
+
+            color: #000000;
+
+        }
+
+
+
+        /* Sidebar */
+
+        .sidebar-menu {
+
+            position: fixed;
+
+            left: -320px;
+
+            top: 0;
+
+            width: 280px;
+
+            height: 100vh;
+
+            background: #FFFFFF;
+
+            border-right: 1px solid #EBEBEB;
+
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.05);
+
+            transition: left 0.5s cubic-bezier(0.8, 0, 0.1, 1);
+
+            z-index: 200;
+
+            padding-top: 80px;
+
+        }
+
+
+
+        .sidebar-menu.open {
+
+            left: 0;
+
+        }
+
+
+
+        .sidebar-link {
+
+            display: flex;
+
+            align-items: center;
+
+            padding: 1rem 2rem;
+
+            font-weight: 400;
+
+            color: #666666;
+
+            text-decoration: none;
+
+            transition: all 0.4s ease;
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+
+
+        .sidebar-link::before {
+
+            content: '';
+
+            position: absolute;
+
+            left: 0;
+
+            top: 0;
+
+            height: 100%;
+
+            width: 3px;
+
+            background: #000000;
+
+            transform: scaleY(0);
+
+            transition: transform 0.4s ease;
+
+        }
+
+
+
+        .sidebar-link.active::before,
+
+        .sidebar-link:hover::before {
+
+            transform: scaleY(1);
+
+        }
+
+
+
+        .sidebar-link.active,
+
+        .sidebar-link:hover {
+
+            background: rgba(0, 0, 0, 0.03);
+
+            color: #000000;
+
+            padding-left: 2.5rem;
+
+        }
+
+
+
+        /* Mapa Galáxia */
+
+        .galaxy-map-container {
+
+            position: relative;
+
+            height: 82vh;
+
+            background: #F8F9FA;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            margin: 2rem;
+
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.02), 0 10px 40px rgba(0, 0, 0, 0.05);
+
+            border: 1px solid #EBEBEB;
+
+        }
+
+
+
+        .galaxy-map-container::before {
+
+            content: '';
+
+            position: absolute;
+
+            inset: 0;
+
+            background: radial-gradient(circle at 20% 30%, #CCCCCC 1px, transparent 2px),
+
+                radial-gradient(circle at 50% 70%, #DDDDDD 1px, transparent 2px),
+
+                radial-gradient(circle at 80% 20%, #BBBBBB 1px, transparent 2px),
+
+                radial-gradient(circle at 30% 80%, #EEEEEE 1px, transparent 2px);
+
+            background-size: 80px 80px;
+
+            opacity: 0.5;
+
+            animation: twinkle 8s infinite alternate;
+
+        }
+
+
+
+        @keyframes twinkle {
+
+            0% {
+
+                opacity: 0.3;
+
+            }
+
+
+
+            100% {
+
+                opacity: 0.7;
+
+            }
+
+        }
+
+
+
+        /* Logo Pulse Effect */
+
+        .live-pulse {
+
+            display: inline-block;
+
+            width: 8px;
+
+            height: 8px;
+
+            background-color: #00C853;
+
+            border-radius: 50%;
+
+            margin-left: 10px;
+
+            box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.7);
+
+            animation: pulse-green 2s infinite;
+
+            vertical-align: middle;
+
+        }
+
+
+
+        @keyframes pulse-green {
+
+            0% {
+
+                transform: scale(0.95);
+
+                box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.7);
+
+            }
+
+
+
+            70% {
+
+                transform: scale(1);
+
+                box-shadow: 0 0 0 10px rgba(0, 200, 83, 0);
+
+            }
+
+
+
+            100% {
+
+                transform: scale(0.95);
+
+                box-shadow: 0 0 0 0 rgba(0, 200, 83, 0);
+
+            }
+
+        }
+
+
+
+        .bubble {
+
+            position: absolute;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: #000000;
+
+            font-weight: 600;
+
+            font-size: 0.85rem;
+
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.05);
+
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+            cursor: pointer;
+
+            backdrop-filter: blur(4px);
+
+            border: 1px solid rgba(0, 0, 0, 0.1);
+
+        }
+
+
+
+        .bubble:hover {
+
+            transform: scale(1.3) translateY(-10px);
+
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.1);
+
+            z-index: 10;
+
+        }
+
+
+
+        .bubble.green {
+
+            background: rgba(0, 0, 0, 0.9);
+
+            color: #FFFFFF;
+
+        }
+
+
+
+        /* Preto para luxo/ideal */
+
+        .bubble.yellow {
+
+            background: rgba(212, 175, 55, 0.9);
+
+            color: #FFFFFF;
+
+        }
+
+
+
+        /* Dourado */
+
+        .bubble.red {
+
+            background: rgba(255, 59, 92, 0.9);
+
+            color: #FFFFFF;
+
+        }
+
+
+
+        .tooltip {
+
+            position: absolute;
+
+            background: rgba(255, 255, 255, 0.95);
+
+            backdrop-filter: blur(10px);
+
+            border: 1px solid #EEEEEE;
+
+            border-radius: 12px;
+
+            padding: 16px 20px;
+
+            font-size: 0.95rem;
+
+            color: #111111;
+
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+
+            pointer-events: none;
+
+            opacity: 0;
+
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            z-index: 300;
+
+            white-space: nowrap;
+
+            transform: translateY(10px);
+
+        }
+
+
+
+        /* Gráfico / Sections */
+
+        .dash-section {
+
+            padding: 2rem;
+
+            animation: slideUp 0.6s ease forwards;
+
+            opacity: 0;
+
+        }
+
+
+
+        .dash-section:nth-child(2) {
+
+            animation-delay: 0.2s;
+
+        }
+
+
+
+        @keyframes slideUp {
+
+            from {
+
+                opacity: 0;
+
+                transform: translateY(30px);
+
+            }
+
+
+
+            to {
+
+                opacity: 1;
+
+                transform: translateY(0);
+
+            }
+
+        }
+
+
+
+        .live-chart-wrapper {
+
+            background: linear-gradient(145deg, #FFFFFF, #F8F9FA);
+
+            border: 1px solid #EBEBEB;
+
+            border-radius: 20px;
+
+            padding: 2.5rem;
+
+            margin: 2rem 0;
+
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+
+            transition: transform 0.4s ease;
+
+        }
+
+
+
+        .live-chart-wrapper:hover {
+
+            transform: translateY(-5px);
+
+            border-color: #CCCCCC;
+
+        }
+
+
+
+        .kpi-card {
+
+            background: #FFFFFF;
+
+            border: 1px solid #EBEBEB;
+
+            border-radius: 16px;
+
+            padding: 2rem;
+
+            transition: all 0.4s ease;
+
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+
+        }
+
+
+
+        .kpi-card:hover {
+
+            border-color: #000000;
+
+            transform: translateY(-5px);
+
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+
+        }
+
+
+
+        .kpi-val.dark {
+
+            color: #111111;
+
+        }
+
+
+
+        .kpi-val.green {
+
+            color: #000000;
+
+        }
+
+
+
+        /* Preto Foco */
+
+        .kpi-val-small.dark {
+
+            color: #111111;
+
+        }
+
+
+
+        .kpi-val-small.green {
+
+            color: #000000;
+
+        }
+
+
+
+        .map-header {
+
+            color: #111111;
+
+            margin: 2rem;
+
+        }
+
+
+
+        .map-legend {
+
+            margin-top: 10px;
+
+        }
+
+
+
+        .map-legend span {
+
+            margin-right: 1.5rem;
+
+            font-weight: 300;
+
+            letter-spacing: 1px;
+
+            color: #555555;
+
+        }
+
+
+
+        .gov-header {
+
+            margin-bottom: 2rem;
+
+        }
+
+
+
+        .gov-header .dash-title {
+
+            color: #111111;
+
+            font-size: 2.5rem;
+
+            letter-spacing: -1px;
+
+            font-weight: 300;
+
+            margin-bottom: 0.5rem;
+
+        }
+
+
+
+        .gov-header .dash-intro {
+
+            color: #666666;
+
+            font-size: 1.1rem;
+
+        }
+
+
+
+        .nr17-stamp {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 8px 16px;
+
+            border-radius: 50px;
+
+            border: 1px solid #000000;
+
+            color: #000000;
+
+            background: rgba(0, 0, 0, 0.05);
+
+            font-weight: 600;
+
+            font-size: 0.9rem;
+
+            margin-bottom: 2rem;
+
+            letter-spacing: 1px;
+
+        }
+
+
+
+        .nr17-stamp .stamp-icon {
+
+            color: #000000;
+
+        }
+
+
+
+        /* Butões Dashboard */
+
+        .btn-sair {
+
+            background: transparent;
+
+            border: 1px solid #CCCCCC;
+
+            color: #111111;
+
+            padding: 8px 24px;
+
+            border-radius: 50px;
+
+            cursor: pointer;
+
+            transition: all 0.3s ease;
+
+        }
+
+
+
+        .btn-sair:hover {
+
+            color: #FFFFFF;
+
+            background: #000000;
+
+            border-color: #000000;
+
+        }
+
+
+
+        .menu-toggle .bar {
+
+            background: #111111;
+
+        }
+
+    </style>
+
+</head>
+
+
+
+<body>
+
+
+
+    <!-- Fixed Header -->
+
+    <header class="site-header">
+
+        <div class="logo">A.R.B.O.</div>
+
+        <nav class="nav-links">
+
+            <a href="#login" class="nav-link corporate-login">Login Corporativo</a>
+
+            <a href="#comprar" class="nav-link buy-now">Comprar Agora</a>
+
+        </nav>
+
+    </header>
+
+
+
+
+
+
+
+    <!-- Scrollable Content Layer -->
+
+    <main class="content-layer">
+
+
+
+        <!-- Hero Section -->
+
+        <section class="panel hero">
+
+            <div class="hero-content reveal">
+
+                <h1 class="hero-title">A.R.B.O.</h1>
+
+                <p class="hero-subtitle">A Evolução da Governança Térmica.</p>
+
+                <div class="product-showcase-container reveal" style="transition-delay: 0.3s; margin-top: 4rem;">
+
+                    <div class="product-wrapper">
+
+                        <div class="luxury-image-box">
+
+                            <!-- Salve a foto do produto na pasta 'assets' com o nome 'hero-produto.jpg' -->
+
+                            <img src="assets/hero-produto.jpg" alt="Produto A.R.B.O." class="product-placeholder">
+
+                            <div class="box-overlay"></div>
+
+                        </div>
+
+                        <div class="product-caption">
+
+                            <span class="caption-id">01 // VISUAL</span>
+
+                            <span class="caption-text">Módulo Central A.R.B.O. Edition</span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- The Design Section -->
+
+        <section class="panel design-section">
+
+            <div class="design-grid">
+
+                <div class="text-block reveal">
+
+                    <p class="section-label">THE DESIGN</p>
+
+                    <h2>Estética Biofílica.<br>Inteligência Invisível.</h2>
+
+                    <p class="description">
+
+                        Um item de luxo para escritórios modernos. A interface RoboEyes integra-se perfeitamente ao
+
+                        ambiente,
+
+                        fundindo a natureza com a mais alta tecnologia de monitoramento ambiental.
+
+                        O fim dos termostatos industriais. O início da elegância responsiva.
+
+                    </p>
+
+                </div>
+
+                <div class="product-wrapper reveal" style="transition-delay: 0.2s;">
+
+                    <div class="luxury-image-box">
+
+                        <!-- Salve a foto de detalhe na pasta 'assets' com o nome 'design-detalhe.jpg' -->
+
+                        <img src="assets/design-detalhe.jpg" alt="Detalhe do Design A.R.B.O."
+
+                            class="product-placeholder">
+
+                        <div class="box-overlay"></div>
+
+                    </div>
+
+                    <div class="product-caption">
+
+                        <span class="caption-id">02 // DETAIL</span>
+
+                        <span class="caption-text">Acabamento em materiais orgânicos e sensores embutidos</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- The Pillars Section -->
+
+        <section class="panel pillars-section">
+
+            <div class="pillars-container">
+
+                <p class="section-label reveal text-center">THE PILLARS</p>
+
+
+
+                <div class="card-grid">
+
+                    <!-- E -->
+
+                    <div class="pillar-card reveal" style="transition-delay: 0.1s;">
+
+                        <h3>Environmental</h3>
+
+                        <p>Eficiência energética de alta performance. Reduza o desperdício climático com inteligência
+
+                            preditiva.</p>
+
+                    </div>
+
+
+
+                    <!-- S -->
+
+                    <div class="pillar-card reveal" style="transition-delay: 0.3s;">
+
+                        <h3>Social</h3>
+
+                        <p>Conforto e saúde ocupacional. Ambientes sempre em conformidade rigorosa com a NR-17.</p>
+
+                    </div>
+
+
+
+                    <!-- G -->
+
+                    <div class="pillar-card reveal" style="transition-delay: 0.5s;">
+
+                        <h3>Governance</h3>
+
+                        <p>Gestão de dados fluida, invisível e totalmente segura. Controle absoluto, complexidade zero.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <section class="panel cta-section">
+
+            <!-- Full-bleed Background Image with Dark Overlay -->
+
+            <div class="cta-background-image reveal" style="transition-delay: 0.1s;">
+
+                <!-- Salve a foto de fundo do CTA na pasta 'assets' com o nome 'cta-fundo.jpg' -->
+
+                <img src="assets/cta-fundo.jpg" alt="Fundo Integração A.R.B.O.">
+
+                <div class="cta-overlay"></div>
+
+            </div>
+
+
+
+            <!-- Content completely integrated with the background -->
+
+            <div class="cta-content-immersive reveal" style="transition-delay: 0.3s;">
+
+                <h2>O Futuro é Orgânico.</h2>
+
+                <p class="description">
+
+                    Integre a inteligência do A.R.B.O. ao seu sistema de gestão predial hoje.
+
+                    Controle absoluto. Complexidade zero.
+
+                </p>
+
+
+
+                <div class="specs-grid">
+
+                    <div class="spec-item">
+
+                        <strong>24/7</strong>
+
+                        <span>Monitoramento</span>
+
+                    </div>
+
+                    <div class="spec-item-divider"></div>
+
+                    <div class="spec-item">
+
+                        <strong>100%</strong>
+
+                        <span>Biofílico</span>
+
+                    </div>
+
+                    <div class="spec-item-divider"></div>
+
+                    <div class="spec-item">
+
+                        <strong>NR-17</strong>
+
+                        <span>Conformidade</span>
+
+                    </div>
+
+                </div>
+
+
+
+                <a href="#comprar" class="buy-now-outline">Encomendar</a>
+
+            </div>
+
+        </section>
+
+
+
+    </main>
+
+
+
+    <!-- Login Corporativo Modal -->
+
+    <div id="loginModal" class="modal-overlay">
+
+        <div class="modal-content"
+
+            style="background: #FFFFFF; color: #111111; border: 1px solid #EEEEEE; box-shadow: 0 40px 100px rgba(0,0,0,0.1);">
+
+            <button class="close-modal" id="closeModal" style="color: #666666;">&times;</button>
+
+            <div class="modal-header">
+
+                <h2 style="color: #111111; letter-spacing: -1px; font-weight: 800;">Acesso Corporativo</h2>
+
+                <p style="color: #666666;">Insira o seu token de segurança para acessar o painel de governança.</p>
+
+            </div>
+
+            <form id="loginForm" class="login-form">
+
+                <input type="text" id="securityToken" placeholder="A.R.B.O. Token" required autocomplete="off"
+
+                    style="background: #FAFAFA; color: #000000; border: 1px solid #DDDDDD; text-transform: uppercase; font-weight: 600; text-align: center; letter-spacing: 2px;">
+
+                <button type="submit" class="submit-token"
+
+                    style="background: #000000; color: #FFFFFF; border: none; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Autenticar</button>
+
+            </form>
+
+            <div id="loginFeedback" class="login-feedback"></div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Footer -->
+
+    <footer class="site-footer" style="padding: 2rem 4rem; text-align: center;">
+
+        <div
+
+            style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; gap: 1rem;">
+
+            <div style="text-align: left;">
+
+                <strong style="color: var(--color-accent); font-size: 1.2rem;">A.R.B.O.</strong>
+
+                <p style="font-size: 0.8rem; color: var(--color-text-muted);">A Evolução da Governança Térmica.</p>
+
+            </div>
+
+
+
+            <div style="font-size: 0.9rem; text-align: center; color: var(--color-text-dark); font-weight: 600;">
+
+                <p>contato@arbo-project.com</p>
+
+            </div>
+
+
+
+            <div style="text-align: right; font-size: 0.8rem; color: var(--color-text-muted);">
+
+                <p>&copy; 2026 A.R.B.O. Inc.</p>
+
+                <p class="footer-small">Desenvolvido no Brasil.</p>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+
+    <!-- ==========================================
+
+         CORPORATE DASHBOARD (Hidden by Default) 
+
+         ========================================== -->
+
+    <div id="corporateDashboard" class="dashboard-container" style="display: none;">
+
+
+
+        <!-- Dashboard Header -->
+
+        <header class="dash-header">
+
+            <div class="dash-header-left">
+
+                <button id="menuToggleBtn" class="menu-toggle">
+
+                    <span class="bar"></span>
+
+                    <span class="bar"></span>
+
+                    <span class="bar"></span>
+
+                </button>
+
+            </div>
+
+            <div class="dash-header-center">
+
+                <div class="dash-logo-text" style="display: flex; align-items: center; justify-content: center;">
+
+                    A.R.B.O. <span>CORPORATE</span>
+
+                    <span class="live-pulse" title="Recebendo dados em tempo real"></span>
+
+                </div>
+
+            </div>
+
+            <div class="dash-header-right">
+
+                <button id="logoutBtn" class="btn-sair">Sair</button>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- Sidebar Navigation -->
+
+        <div id="sidebarMenu" class="sidebar-menu">
+
+            <div class="sidebar-content">
+
+                <button class="close-sidebar" id="closeSidebarBtn">&times;</button>
+
+                <nav class="sidebar-nav">
+
+                    <a href="#" class="sidebar-link active" data-view="view-overview">Visão Geral</a>
+
+                    <a href="#" class="sidebar-link" data-view="view-map">Mapa Galáxia</a>
+
+                    <a href="#" class="sidebar-link" data-view="view-chart">Consumo em Tempo Real</a>
+
+                    <a href="#" class="sidebar-link" data-view="view-fleet">Gestão de Frota</a>
+
+                    <a href="#" class="sidebar-link" data-view="view-reports">Relatórios e Auditoria</a>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="dash-content" id="dashContentArea">
+
+
+
+            <!-- VIEW 1: VISÃO GERAL -->
+
+            <div id="view-overview" class="dash-view active-view">
+
+
+
+                <section class="dash-section gov-report">
+
+                    <div class="gov-header">
+
+                        <h1 class="dash-title">Visão Geral</h1>
+
+                        <p class="dash-intro">
+
+                            O fim dos termostatos industriais. O início da eficiência responsiva.
+
+                        </p>
+
+                    </div>
+
+                    <div class="nr17-stamp">
+
+                        <span class="stamp-icon">●</span> NR-17: AMBIENTE CONFORME
+
+                    </div>
+
+                </section>
+
+
+
+                <section class="dash-section">
+
+                    <div class="kpi-grid">
+
+                        <div class="kpi-card">
+
+                            <span class="kpi-title">ECONOMIA TOTAL ACUMULADA</span>
+
+                            <strong class="kpi-val green" id="roiValue">R$ 14.580,00</strong>
+
+                            <span style="font-size: 0.85rem; color: #666; margin-top: 10px;">Conversão automática
+
+                                (Tarifa base: R$ 0,95/kWh)</span>
+
+                        </div>
+
+                        <div class="kpi-card">
+
+                            <span class="kpi-title">CONFORTO TÉRMICO (SAÚDE NR-17)</span>
+
+                            <strong class="kpi-val dark">98.5%</strong>
+
+                            <span style="font-size: 0.85rem; color: #666; margin-top: 10px;">Tempo em conformidade
+
+                                durante o expediente</span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="kpi-grid-small">
+
+                        <div class="kpi-card" style="padding: 1.5rem;">
+
+                            <span class="kpi-title">VASOS ATIVOS</span>
+
+                            <strong class="kpi-val-small">12 <span
+
+                                    style="font-size: 1rem; color: #888; font-weight:400;">/ 12</span></strong>
+
+                        </div>
+
+                        <div class="kpi-card" style="padding: 1.5rem;">
+
+                            <span class="kpi-title">INTERVENÇÕES HOJE</span>
+
+                            <strong class="kpi-val-small" style="color: #D4AF37;">14</strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+
+
+            <!-- VIEW 2: MAPA DE UNIDADES (GALÁXIA) -->
+
+            <div id="view-map" class="galaxy-map-view">
+
+                <div class="map-header">
+
+                    <h2 class="dash-title"
+
+                        style="font-size: 2rem; font-weight: 300; letter-spacing: -1px; margin-bottom: 0.5rem; color: #111;">
+
+                        Mapa
+
+                        Galáxia – Localização dos A.R.B.O.</h2>
+
+                    <div class="map-legend">
+
+                        <span><span style="color: #000;">●</span> Ideal</span>
+
+                        <span><span style="color: #D4AF37;">●</span> Atenção</span>
+
+                        <span><span style="color: #FF3B5C;">●</span> Crítico</span>
+
+                    </div>
+
+                </div>
+
+                <div id="galaxyMap" class="galaxy-map-container">
+
+                    <!-- Bolhas geradas pelo JS -->
+
+                </div>
+
+            </div>
+
+
+
+            <!-- VIEW 3: CONSUMO EM TEMPO REAL -->
+
+            <div id="view-chart" class="dash-view">
+
+                <section class="dash-section">
+
+                    <div class="gov-header">
+
+                        <h1 class="dash-title">Consumo em Tempo Real</h1>
+
+                        <p class="dash-intro">Análise preditiva de eficiência térmica A.R.B.O.</p>
+
+                    </div>
+
+
+
+                    <div class="live-chart-wrapper">
+
+                        <div class="chart-header" style="margin-bottom: 2rem;">
+
+                            <div>
+
+                                <span class="kpi-title"
+
+                                    style="color: #666; font-size: 0.9rem; letter-spacing: 1px;">CONSUMO ATUAL</span>
+
+                                <strong class="kpi-val dark" id="liveConsumptionValue"
+
+                                    style="display: block; font-size: 3rem; margin-top: 0.5rem; font-weight: 300; color: #111;">18.4
+
+                                    <span style="font-size: 1.2rem; color: #000; font-weight:400;">kWh</span></strong>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="chart-svg-container">
+
+                            <svg viewBox="0 0 1000 300" class="minimal-chart" preserveAspectRatio="none"
+
+                                style="width: 100%; height: 100%; overflow: visible;">
+
+                                <defs>
+
+                                    <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
+
+                                        <stop offset="0%" stop-color="#000000" stop-opacity="0.1" />
+
+                                        <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+
+                                    </linearGradient>
+
+                                    <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
+
+                                        <feGaussianBlur stdDeviation="3" result="blur" />
+
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+
+                                    </filter>
+
+                                </defs>
+
+                                <path id="liveChartFill" d="M0,300 L0,300 L1000,300 Z" fill="url(#chartGlow)" />
+
+                                <path id="liveChartLine" d="M0,150 L1000,150" fill="none" stroke="#000000"
+
+                                    stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+
+                                    filter="url(#glowEffect)" />
+
+                                <circle id="liveChartDot" cx="1000" cy="150" r="10" fill="#FFF" stroke="#000000"
+
+                                    stroke-width="4" filter="url(#glowEffect)" />
+
+                            </svg>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="kpi-grid-small">
+
+                        <div class="kpi-card" style="padding: 1.5rem;">
+
+                            <span class="kpi-title">ECONOMIA HOJE</span>
+
+                            <strong class="kpi-val-small dark">R$ 387,40</strong>
+
+                        </div>
+
+                        <div class="kpi-card" style="padding: 1.5rem;">
+
+                            <span class="kpi-title">REDUÇÃO</span>
+
+                            <strong class="kpi-val-small green">-31%</strong>
+
+                        </div>
+
+                    </div>
+
+
+
+                </section>
+
+            </div>
+
+
+
+            <!-- VIEW 4: GESTÃO DE FROTA -->
+
+            <div id="view-fleet" class="dash-view">
+
+                <section class="dash-section">
+
+                    <div class="gov-header">
+
+                        <h1 class="dash-title">Gestão de Frota</h1>
+
+                        <p class="dash-intro">Monitoramento e manutenção dos ativos A.R.B.O. instalados.</p>
+
+                    </div>
+
+                    <!-- Preenchido via JS -->
+
+                    <div id="fleetContainer"></div>
+
+                </section>
+
+            </div>
+
+
+
+            <!-- VIEW 5: RELATÓRIOS E AUDITORIA -->
+
+            <div id="view-reports" class="dash-view">
+
+                <section class="dash-section">
+
+                    <div class="gov-header"
+
+                        style="flex-direction: row; justify-content: space-between; align-items: center; width: 100%;">
+
+                        <div>
+
+                            <h1 class="dash-title">Relatórios e Auditoria</h1>
+
+                            <p class="dash-intro">Histórico de intervenções e emissões de relatórios de compliance.</p>
+
+                        </div>
+
+                        <button id="generateReportBtn"
+
+                            style="background: #111; color: #FFF; border: none; padding: 12px 24px; border-radius: 4px; font-weight: 600; cursor: pointer; transition: all 0.3s;">Gerar
+
+                            Relatório ESG (PDF)</button>
+
+                    </div>
+
+
+
+                    <div class="kpi-grid" style="grid-template-columns: 2fr 1fr;">
+
+                        <div class="kpi-card" style="justify-content: flex-start; gap: 1rem;">
+
+                            <span class="kpi-title">Histórico de Intervenções Automáticas</span>
+
+                            <ul id="alertsHistoryList"
+
+                                style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px;">
+
+                                <!-- Preenchido via JS -->
+
+                            </ul>
+
+                        </div>
+
+                        <div class="kpi-card">
+
+                            <span class="kpi-title">STATUS EXPORTAÇÃO</span>
+
+                            <strong class="kpi-val dark" style="font-size: 2rem;">Pronto</strong>
+
+                            <span style="font-size: 0.85rem; color: #666; margin-top: 10px;">Último relatório:
+
+                                01/Mar/2026</span>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+
+
+        </div>
+
+    </div>
+
+
+
+    <script src="app.js"></script>
+
+    <script>
+
+        // ================== MENU HAMBURGER ==================
+
+        const menuToggle = document.getElementById('menuToggleBtn');
+
+        const sidebar = document.getElementById('sidebarMenu');
+
+        const closeSidebar = document.getElementById('closeSidebarBtn');
+
+
+
+        menuToggle.addEventListener('click', () => sidebar.classList.add('open'));
+
+        closeSidebar.addEventListener('click', () => sidebar.classList.remove('open'));
+
+
+
+        // ================== TROCA DE VIEWS ==================
+
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+        const views = document.querySelectorAll('.dash-view, .galaxy-map-view');
+
+
+
+        sidebarLinks.forEach(link => {
+
+            link.addEventListener('click', e => {
+
+                e.preventDefault();
+
+                sidebarLinks.forEach(l => l.classList.remove('active'));
+
+                link.classList.add('active');
+
+                views.forEach(v => v.classList.remove('active-view'));
+
+                document.getElementById(link.dataset.view).classList.add('active-view');
+
+                if (link.dataset.view === 'view-map') createGalaxyBubbles();
+
+                sidebar.classList.remove('open');
+
+            });
+
+        });
+
+
+
+        // ================== GESTÃO DO DASHBOARD & LOGIN MODAL ==================
+
+        const loginForm = document.getElementById('loginForm');
+
+        const loginModal = document.getElementById('loginModal');
+
+        const corporateDashboard = document.getElementById('corporateDashboard');
+
+        const contentLayer = document.querySelector('.content-layer');
+
+        const loginBtn = document.querySelector('.corporate-login');
+
+        const siteHeader = document.querySelector('.site-header');
+
+        const closeModalBtn = document.getElementById('closeModal');
+
+
+
+        // Abre o modal
+
+        if (loginBtn) {
+
+            loginBtn.addEventListener('click', e => {
+
+                e.preventDefault();
+
+                loginModal.classList.add('active');
+
+            });
+
+        }
+
+
+
+        // Fecha o modal no X
+
+        if (closeModalBtn) {
+
+            closeModalBtn.addEventListener('click', () => {
+
+                loginModal.classList.remove('active');
+
+            });
+
+        }
+
+
+
+        // Submissão do Token
+
+        if (loginForm) {
+
+            loginForm.addEventListener('submit', e => {
+
+                e.preventDefault();
+
+                if (document.getElementById('securityToken').value.toUpperCase().trim() === 'ARBO2026') {
+
+                    loginModal.classList.remove('active');
+
+                    contentLayer.style.display = 'none';
+
+                    corporateDashboard.style.display = 'block';
+
+
+
+                    // Inicializar primeira aba
+
+                    const viewOverview = document.querySelector('[data-view="view-overview"]');
+
+                    if (viewOverview) viewOverview.click();
+
+
+
+                    // Ocultar header e footer do site principal
+
+                    if (siteHeader) siteHeader.style.display = 'none';
+
+                    document.querySelector('.site-footer').style.display = 'none';
+
+                } else {
+
+                    document.getElementById('loginFeedback').innerHTML = '<span style="color:#FF3B5C; font-size: 0.9rem; margin-top: 10px; display: block;">Token inválido. Acesso negado.</span>';
+
+                }
+
+            });
+
+        }
+
+
+
+        // Sair do dashboard
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+
+            corporateDashboard.style.display = 'none';
+
+            contentLayer.style.display = 'block';
+
+
+
+            // Restaurar header e footer do site principal
+
+            if (siteHeader) siteHeader.style.display = 'flex';
+
+            document.querySelector('.site-footer').style.display = 'flex';
+
+
+
+            // Mostrar modal de login novamente (opcional, pode deixar sem aparecer também)
+
+            loginModal.classList.add('active');
+
+
+
+            // Limpar formulário de login e msg erro
+
+            document.getElementById('securityToken').value = '';
+
+            document.getElementById('loginFeedback').innerHTML = '';
+
+
+
+            window.scrollTo(0, 0);
+
+        });
+
+
+
+        // ================== MAPA GALÁXIA ==================
+
+        // ================== MAPA GALÁXIA & DADOS SENSOR ==================
+
+        function createGalaxyBubbles() {
+
+            const container = document.getElementById('galaxyMap');
+
+            container.innerHTML = '';
+
+
+
+            const salas = [
+
+                { id: "A01", nome: "RH", temp: "23.4°C", umi: "58%", press: "1012 hPa", status: "Ideal", cor: "green", left: "18%", top: "25%", irArea: 120 },
+
+                { id: "A02", nome: "Sala Reunião A", temp: "26.1°C", umi: "62%", press: "1010 hPa", status: "Atenção", cor: "yellow", left: "45%", top: "35%", irArea: 80 },
+
+                { id: "A03", nome: "Fábrica Setor 1", temp: "29.8°C", umi: "71%", press: "1008 hPa", status: "Crítico", cor: "red", left: "72%", top: "22%", irArea: 160 },
+
+                { id: "A04", nome: "Executivo", temp: "22.9°C", umi: "55%", press: "1013 hPa", status: "Ideal", cor: "green", left: "28%", top: "68%", irArea: 90 },
+
+                { id: "A05", nome: "Setor 2", temp: "24.7°C", umi: "60%", press: "1011 hPa", status: "Ideal", cor: "green", left: "65%", top: "78%", irArea: 100 },
+
+                { id: "A06", nome: "Cafeteria", temp: "27.3°C", umi: "65%", press: "1009 hPa", status: "Atenção", cor: "yellow", left: "82%", top: "48%", irArea: 85 }
+
+            ];
+
+
+
+            const tooltip = document.createElement('div');
+
+            tooltip.className = 'tooltip';
+
+            container.appendChild(tooltip);
+
+
+
+            salas.forEach(sala => {
+
+                const bubble = document.createElement('div');
+
+                bubble.className = `bubble ${sala.cor}`;
+
+                // Tamanho da bolha indica área de cobertura IR
+
+                const bubbleSize = Math.max(50, Math.min(150, sala.irArea));
+
+                bubble.style.width = bubble.style.height = bubbleSize + 'px';
+
+                bubble.style.left = sala.left;
+
+                bubble.style.top = sala.top;
+
+                bubble.style.lineHeight = bubbleSize + 'px';
+
+                bubble.textContent = sala.nome.substring(0, 3);
+
+
+
+                bubble.addEventListener('mouseenter', e => {
+
+                    tooltip.innerHTML = `
+
+                        <div style="border-bottom: 1px solid #EEE; padding-bottom: 8px; margin-bottom: 8px;">
+
+                            <strong style="font-size: 1.1rem; color: #111;">${sala.nome}</strong><br>
+
+                            <span style="font-size: 0.8rem; color: #666;">ID: ${sala.id} | Área IR: ${sala.irArea}m²</span>
+
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem;">
+
+                            <div><span style="color:#888;">Temp:</span> <strong style="color:#111;">${sala.temp}</strong></div>
+
+                            <div><span style="color:#888;">Umid:</span> <strong style="color:#111;">${sala.umi}</strong></div>
+
+                            <div style="grid-column: 1 / -1;"><span style="color:#888;">Pressão:</span> <strong style="color:#111;">${sala.press}</strong></div>
+
+                        </div>
+
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #EEE; text-align: right;">
+
+                            <span style="font-weight: 600; color:${sala.cor === 'green' ? '#000' : sala.cor === 'yellow' ? '#D4AF37' : '#FF3B5C'}">${sala.status}</span>
+
+                        </div>
+
+                    `;
+
+                    tooltip.style.left = (e.clientX + 20) + 'px';
+
+                    tooltip.style.top = (e.clientY - 10) + 'px';
+
+                    tooltip.style.opacity = '1';
+
+                });
+
+                bubble.addEventListener('mouseleave', () => tooltip.style.opacity = '0');
+
+                container.appendChild(bubble);
+
+            });
+
+        }
+
+
+
+        // ================== INDICADORES FINANCEIROS (ROI) ==================
+
+        let accumulatedSavings = 14580.00;
+
+        const roiEl = document.getElementById('roiValue');
+
+
+
+        function updateROI() {
+
+            // Simula economia de 0.01 a 0.05 centavos a cada intervalo (Tarifa base * kWh)
+
+            accumulatedSavings += (Math.random() * 0.04 + 0.01);
+
+            if (roiEl) roiEl.innerHTML = accumulatedSavings.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        }
+
+        setInterval(updateROI, 3000);
+
+
+
+        // ================== GRÁFICO TEMPO REAL ==================
+
+        let consumption = 18.4;
+
+        const valueEl = document.getElementById('liveConsumptionValue');
+
+        const line = document.getElementById('liveChartLine');
+
+        const fill = document.getElementById('liveChartFill');
+
+        const dot = document.getElementById('liveChartDot');
+
+        let points = Array(20).fill(150);
+
+
+
+        function updateLiveChart() {
+
+            consumption += (Math.random() * 1.2 - 0.6);
+
+            if (consumption < 12) consumption = 12;
+
+            if (consumption > 25) consumption = 25;
+
+
+
+            if (valueEl) {
+
+                valueEl.innerHTML = consumption.toFixed(1) + ' <span style="font-size:1rem;color:#888;font-weight:400;">kWh</span>';
+
+            }
+
+
+
+            points.shift();
+
+            points.push(300 - (consumption - 12) * 15);
+
+
+
+            let pathD = 'M0,' + points[0];
+
+            for (let i = 1; i < points.length; i++) {
+
+                pathD += ' L' + (i * 50) + ',' + points[i];
+
+            }
+
+            if (line && fill && dot) {
+
+                line.setAttribute('d', pathD);
+
+                fill.setAttribute('d', pathD + ' L1000,300 L0,300 Z');
+
+                dot.setAttribute('cx', '950');
+
+                dot.setAttribute('cy', points[points.length - 1]);
+
+            }
+
+        }
+
+        setInterval(updateLiveChart, 1800);
+
+        updateLiveChart();
+
+
+
+        // ================== PREENCHIMENTO: GESTÃO DE FROTA ==================
+
+        const fleetData = [
+
+            { id: "A01", dmac: "ESP32-1A2B", locale: "RH", health: "Ótima", connection: "Online" },
+
+            { id: "A02", dmac: "ESP32-3C4D", locale: "Sala Reunião A", health: "Água Necessária", connection: "Online" },
+
+            { id: "A03", dmac: "ESP32-5E6F", locale: "Fábrica Setor 1", health: "Atenção (Luz)", connection: "Instável" },
+
+            { id: "A04", dmac: "ESP32-7G8H", locale: "Executivo", health: "Ótima", connection: "Online" },
+
+            { id: "A05", dmac: "ESP32-9I0J", locale: "Setor 2", health: "Ótima", connection: "Online" },
+
+            { id: "A06", dmac: "ESP32-KLMN", locale: "Cafeteria", health: "Substrato Seco", connection: "Online" }
+
+        ];
+
+
+
+        const fleetContainer = document.getElementById('fleetContainer');
+
+        if (fleetContainer) {
+
+            fleetContainer.innerHTML = `
+
+                <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+
+                    <thead>
+
+                        <tr style="border-bottom: 2px solid #EBEBEB; text-align: left; color: #888;">
+
+                            <th style="padding: 1rem;">ID</th>
+
+                            <th style="padding: 1rem;">Localização</th>
+
+                            <th style="padding: 1rem;">Mac (ESP32)</th>
+
+                            <th style="padding: 1rem;">Saúde da Planta</th>
+
+                            <th style="padding: 1rem;">Conexão</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${fleetData.map(item => `
+
+                            <tr style="border-bottom: 1px solid #F0F0F0; transition: background 0.3s;" onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background='transparent'">
+
+                                <td style="padding: 1rem; font-weight: 600;">${item.id}</td>
+
+                                <td style="padding: 1rem;">${item.locale}</td>
+
+                                <td style="padding: 1rem; color: #888; font-family: monospace;">${item.dmac}</td>
+
+                                <td style="padding: 1rem;">
+
+                                    <span style="display:inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; 
+
+                                    background: ${item.health.includes('Ótima') ? 'rgba(0,0,0,0.05)' : item.health.includes('Água') || item.health.includes('Atenção') ? 'rgba(212,175,55,0.1)' : 'rgba(255,59,92,0.1)'};
+
+                                    color: ${item.health.includes('Ótima') ? '#000' : item.health.includes('Água') || item.health.includes('Atenção') ? '#D4AF37' : '#FF3B5C'};">
+
+                                        ${item.health}
+
+                                    </span>
+
+                                </td>
+
+                                <td style="padding: 1rem;">
+
+                                    <span style="color: ${item.connection === 'Online' ? '#00C853' : '#FF3B5C'}; font-weight: 600;">●</span> ${item.connection}
+
+                                </td>
+
+                            </tr>
+
+                        `).join('')}
+
+                    </tbody>
+
+                </table>
+
+            `;
+
+        }
+
+
+
+        // ================== PREENCHIMENTO: HISTÓRICO ALERTAS ==================
+
+        const alertsData = [
+
+            { time: "14:30", msg: "Ar-condicionado ajustado para 23°C", loc: "Sala RH" },
+
+            { time: "12:15", msg: "Ventilação reduzida por ausência", loc: "Sala Reunião A" },
+
+            { time: "10:05", msg: "Umidade baixa detectada, acionamento IR", loc: "Setor 2" },
+
+            { time: "09:00", msg: "Calibração diária BME280 concluída", loc: "Todos" }
+
+        ];
+
+
+
+        const alertsList = document.getElementById('alertsHistoryList');
+
+        if (alertsList) {
+
+            alertsList.innerHTML = alertsData.map(alert => `
+
+                <li style="padding-bottom: 15px; border-bottom: 1px solid #F0F0F0;">
+
+                    <strong style="color: #111; display: block; margin-bottom: 4px;">${alert.loc}</strong>
+
+                    <span style="color: #666; font-size: 0.9rem;">${alert.msg}</span>
+
+                    <div style="color: #aaa; font-size: 0.8rem; margin-top: 4px; font-weight: 600;">${alert.time}</div>
+
+                </li>
+
+            `).join('');
+
+        }
+
+
+
+        // ================== GERAR RELATÓRIO ==================
+
+        const btnReport = document.getElementById('generateReportBtn');
+
+        if (btnReport) {
+
+            btnReport.addEventListener('click', () => {
+
+                const prevText = btnReport.innerText;
+
+                btnReport.innerText = "Gerando PDF...";
+
+                btnReport.style.background = "#666";
+
+                btnReport.style.pointerEvents = "none";
+
+
+
+                setTimeout(() => {
+
+                    btnReport.innerText = "Relatório Baixado!";
+
+                    btnReport.style.background = "#00C853";
+
+
+
+                    setTimeout(() => {
+
+                        btnReport.innerText = prevText;
+
+                        btnReport.style.background = "#111";
+
+                        btnReport.style.pointerEvents = "auto";
+
+                    }, 3000);
+
+                }, 1500);
+
+            });
+
+        }
+
+    </script>
+
+    <script>
+
+        // COLOQUE AQUI (LOGO APÓS A TAG <SCRIPT>)
+
+        const _supabaseUrl = 'https://zbnpwicdgobxkvesgayr.supabase.co';
+
+        const _supabaseKey = 'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc';
+
+        
+
+        // Cuidado: aqui usamos 'supabase.createClient' porque importamos via CDN
+
+        const supabaseClient = supabase.createClient(_supabaseUrl, _supabaseKey);
+
+
+
+        let temperaturaReal = 23.0; 
+
+
+
+        // ================== RESTO DO SEU CÓDIGO (MENU HAMBURGER, ETC) ==================
+
+        const menuToggle = document.getElementById('menuToggleBtn');
+
+        // ...
+
+</body>
+
+
+
+
+
+</html>

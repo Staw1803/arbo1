@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,18 +8,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* Resets e Fontes */
+        /* CSS BLINDADO: Animações agora funcionam sozinhas sem depender de JS */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #FFFFFF; color: #111111; overflow-x: hidden; }
         
-        /* Vitrine / Landing Page */
-        .site-header { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 1.5rem 3rem; z-index: 1000; transition: all 0.4s ease; }
-        .site-header.scrolled-bg { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #EEE; }
-        .site-header.is-hidden { transform: translateY(-100%); }
+        .site-header { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 1.5rem 3rem; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #EEE; }
         .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
         .nav-links a { margin-left: 2rem; text-decoration: none; color: #111; font-weight: 600; font-size: 0.9rem; }
         .nav-links .buy-now { background: #111; color: #FFF; padding: 10px 20px; border-radius: 50px; }
@@ -30,29 +27,14 @@
         .hero-title { font-size: 6rem; font-weight: 800; letter-spacing: -4px; margin-bottom: 1rem; }
         .hero-subtitle { font-size: 1.5rem; color: #666; font-weight: 300; }
         
-        .luxury-image-box { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
-        .luxury-image-box img { width: 100%; max-width: 600px; display: block; }
-        .product-caption { margin-top: 1rem; display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; font-weight: 600; }
+        .luxury-image-box { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.1); background: #F9F9F9; width: 400px; height: 300px; display: flex; align-items: center; justify-content: center; color: #aaa; margin: 0 auto; }
+        .product-caption { margin-top: 1rem; display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; font-weight: 600; max-width: 400px; margin: 1rem auto; }
         
-        .design-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; max-width: 1200px; margin: 0 auto; align-items: center; }
-        .section-label { font-size: 0.8rem; letter-spacing: 2px; font-weight: 600; color: #888; margin-bottom: 1rem; }
-        .design-section h2 { font-size: 3.5rem; font-weight: 300; letter-spacing: -2px; margin-bottom: 2rem; line-height: 1.1; }
-        
-        .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 1200px; margin: 3rem auto 0; }
-        .pillar-card { background: #F9F9F9; padding: 3rem; border-radius: 20px; border: 1px solid #EEE; transition: transform 0.4s ease; }
-        .pillar-card:hover { transform: translateY(-10px); }
-        .pillar-card h3 { font-size: 1.5rem; margin-bottom: 1rem; }
-        
-        .cta-section { background: #111; color: #FFF; text-align: center; flex-direction: column; }
-        .cta-section h2 { font-size: 4rem; letter-spacing: -2px; margin-bottom: 1rem; }
-        .specs-grid { display: flex; justify-content: center; gap: 3rem; margin: 3rem 0; }
-        .spec-item { display: flex; flex-direction: column; }
-        .spec-item strong { font-size: 2rem; }
-        
-        .reveal { opacity: 0; transform: translateY(40px); transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .reveal.is-visible { opacity: 1; transform: translateY(0); }
+        /* AQUI FOI A CORREÇÃO: Opacidade padrão agora é 1 (visível sempre) */
+        .reveal { animation: fadeInUp 1s ease forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Modal de Login */
+        /* Modais e Dashboards */
         .modal-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-content { background: #FFF; padding: 4rem; border-radius: 20px; max-width: 500px; width: 100%; border: 1px solid #EEE; box-shadow: 0 40px 100px rgba(0,0,0,0.1); position: relative; text-align: center; }
@@ -60,51 +42,35 @@
         .login-form input { width: 100%; padding: 15px; margin: 20px 0; border-radius: 8px; border: 1px solid #CCC; font-size: 1rem; text-align: center; font-weight: bold; letter-spacing: 2px; }
         .login-form button { width: 100%; padding: 15px; background: #111; color: #FFF; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* DASHBOARD CORPORATIVO */
         .dashboard-container { display: none; background: #FFFFFF; min-height: 100vh; }
-        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #EEE; position: sticky; top: 0; background: rgba(255,255,255,0.95); z-index: 100; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #EEE; background: rgba(255,255,255,0.95); position: sticky; top: 0; z-index: 100; }
         .dash-logo-text { font-size: 1.3rem; font-weight: 800; }
         .live-pulse { display: inline-block; width: 8px; height: 8px; background: #00C853; border-radius: 50%; margin-left: 10px; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,200,83,0.7); } 70% { box-shadow: 0 0 0 10px rgba(0,200,83,0); } }
         
         .dash-content { padding: 2rem; max-width: 1400px; margin: 0 auto; }
-        .dash-view { display: none; animation: fadeIn 0.5s; }
-        .dash-view.active-view { display: block; }
-        
         .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
         .kpi-card { border: 1px solid #EEE; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
         .kpi-title { font-size: 0.8rem; font-weight: 600; color: #888; letter-spacing: 1px; display: block; margin-bottom: 1rem; }
-        .kpi-val { font-size: 3rem; font-weight: 800; letter-spacing: -1px; }
+        .kpi-val { font-size: 3rem; font-weight: 800; }
         
-        .nr17-stamp { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 50px; font-weight: bold; margin-bottom: 2rem; transition: all 0.3s; }
-        
-        /* Mapa Galáxia */
         .galaxy-map-container { height: 60vh; background: #F9F9F9; border-radius: 20px; position: relative; overflow: hidden; border: 1px solid #EEE; margin-top: 2rem; }
-        .bubble { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFF; font-weight: 600; cursor: pointer; transition: background 0.3s; text-align: center; flex-direction: column; }
+        .bubble { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFF; font-weight: 600; text-align: center; flex-direction: column; transition: all 0.5s; }
         .bubble.green { background: rgba(0,0,0,0.9); }
         .bubble.red { background: rgba(255, 59, 92, 0.9); box-shadow: 0 0 20px rgba(255, 59, 92, 0.5); }
         
-        .menu-toggle { background: none; border: none; font-size: 1.5rem; cursor: pointer; margin-right: 2rem; }
+        .nr17-stamp { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 50px; font-weight: bold; margin-bottom: 2rem; background: rgba(0,0,0,0.05); border: 1px solid #000; }
         .btn-sair { background: #FFF; border: 1px solid #CCC; padding: 5px 15px; border-radius: 20px; cursor: pointer; }
-        .btn-sair:hover { background: #111; color: #FFF; }
-        
-        /* Sidebar Navigation */
-        .sidebar-menu { position: fixed; left: -300px; top: 0; width: 280px; height: 100vh; background: #FFF; border-right: 1px solid #EEE; transition: left 0.3s; z-index: 200; padding-top: 80px; }
-        .sidebar-menu.open { left: 0; }
-        .sidebar-link { display: block; padding: 1rem 2rem; color: #666; text-decoration: none; border-bottom: 1px solid #F9F9F9; }
-        .sidebar-link.active, .sidebar-link:hover { background: #F9F9F9; color: #111; font-weight: bold; }
-        .close-sidebar { position: absolute; top: 20px; right: 20px; font-size: 2rem; background: none; border: none; cursor: pointer; }
     </style>
 </head>
 
 <body>
-
-    <div class="content-layer">
+    <div id="vitrineLayer" class="content-layer">
         <header class="site-header">
             <div class="logo">A.R.B.O.</div>
             <nav class="nav-links">
-                <a href="#login" class="corporate-login">Login Corporativo</a>
-                <a href="#comprar" class="buy-now">Comprar Agora</a>
+                <a href="#" id="abrirModalLogin">Login Corporativo</a>
+                <a href="#" class="buy-now">Comprar Agora</a>
             </nav>
         </header>
 
@@ -114,34 +80,21 @@
                 <p class="hero-subtitle">A Evolução da Governança Térmica.</p>
                 <div class="product-showcase-container" style="margin-top: 3rem;">
                     <div class="luxury-image-box">
-                        <div style="width: 400px; height: 400px; background: #F0F0F0; display: flex; align-items: center; justify-content: center; color: #AAA;">Imagem do Módulo</div>
+                        <img src="assets/hero-produto.jpg" alt="Módulo ARBO" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
+                    </div>
+                    <div class="product-caption">
+                        <span>01 // VISUAL</span>
+                        <span>Módulo Central A.R.B.O.</span>
                     </div>
                 </div>
             </div>
         </section>
-
-        <section class="panel design-section">
-            <div class="design-grid">
-                <div class="text-block reveal">
-                    <p class="section-label">THE DESIGN</p>
-                    <h2>Estética Biofílica.<br>Inteligência Invisível.</h2>
-                    <p>Um item de luxo para escritórios modernos. O fim dos termostatos industriais. O início da elegância responsiva.</p>
-                </div>
-            </div>
-        </section>
-
-        <footer class="site-footer" style="padding: 2rem; text-align: center; border-top: 1px solid #EEE; margin-top: 5rem;">
-            <p>&copy; 2026 A.R.B.O. Inc. Desenvolvido em Manaus.</p>
-        </footer>
     </div>
 
     <div id="loginModal" class="modal-overlay">
         <div class="modal-content">
-            <button class="close-modal" id="closeModal">&times;</button>
-            <div class="modal-header">
-                <h2>Acesso Corporativo</h2>
-                <p style="color: #666; margin-top: 10px;">Insira a credencial da empresa.</p>
-            </div>
+            <button class="close-modal" id="fecharModal">&times;</button>
+            <h2>Acesso Corporativo</h2>
             <form id="loginForm" class="login-form">
                 <input type="text" id="securityToken" placeholder="TOKEN" required autocomplete="off">
                 <button type="submit" id="btnSubmitLogin">Autenticar</button>
@@ -151,258 +104,148 @@
     </div>
 
     <div id="corporateDashboard" class="dashboard-container">
-        
         <header class="dash-header">
-            <div style="display: flex; align-items: center;">
-                <button id="menuToggleBtn" class="menu-toggle">☰</button>
-                <div class="dash-logo-text">A.R.B.O. <span>CORPORATE</span><span class="live-pulse"></span></div>
-            </div>
+            <div class="dash-logo-text">A.R.B.O. <span>CORPORATE</span><span class="live-pulse"></span></div>
             <button id="logoutBtn" class="btn-sair">Sair do Painel</button>
         </header>
 
-        <div id="sidebarMenu" class="sidebar-menu">
-            <button class="close-sidebar" id="closeSidebarBtn">&times;</button>
-            <nav style="margin-top: 2rem;">
-                <a href="#" class="sidebar-link active" data-view="view-overview">Visão Geral</a>
-                <a href="#" class="sidebar-link" data-view="view-map">Mapa Galáxia</a>
-                <a href="#" class="sidebar-link" data-view="view-fleet">Gestão de Frota</a>
-            </nav>
-        </div>
-
         <div class="dash-content">
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Visão Geral</h1>
+            <p style="color: #666; margin-bottom: 2rem;">Monitoramento em tempo real do ambiente.</p>
             
-            <div id="view-overview" class="dash-view active-view">
-                <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Visão Geral</h1>
-                <p style="color: #666; margin-bottom: 2rem;">Monitoramento em tempo real do ambiente.</p>
-                
-                <div class="nr17-stamp" id="nr17Status" style="background: rgba(0,0,0,0.05); border: 1px solid #000; color: #000;">
-                    ● Conectando ao Servidor...
-                </div>
+            <div class="nr17-stamp" id="nr17Status">
+                ● Conectando ao Servidor...
+            </div>
 
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <span class="kpi-title">TEMPERATURA ATUAL (SENSOR)</span>
-                        <strong class="kpi-val dark" id="liveConsumptionValue">-- °C</strong>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-title">UMIDADE ATUAL</span>
-                        <strong class="kpi-val dark" id="liveHumidityValue">-- %</strong>
-                    </div>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <span class="kpi-title">TEMPERATURA ATUAL (SENSOR)</span>
+                    <strong class="kpi-val dark" id="liveTemp">-- °C</strong>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-title">STATUS DO SISTEMA</span>
+                    <strong class="kpi-val dark" id="liveStatus" style="font-size: 2rem;">Aguardando</strong>
                 </div>
             </div>
 
-            <div id="view-map" class="dash-view">
-                <h2 style="font-size: 2rem;">Mapa Galáxia</h2>
-                <p style="color: #666;">Localização dos sensores ativos.</p>
-                <div id="galaxyMap" class="galaxy-map-container">
-                    <div id="bolha-vaso01" class="bubble green" style="width: 140px; height: 140px; left: 40%; top: 30%;">
-                        <span style="font-size: 0.8rem; font-weight: normal;">Sala RH</span><br>
-                        <strong id="bolha-temp" style="font-size: 1.5rem;">-- °C</strong>
-                    </div>
+            <div id="galaxyMap" class="galaxy-map-container">
+                <div id="bolha-vaso" class="bubble green" style="width: 140px; height: 140px; left: 40%; top: 30%;">
+                    <span style="font-size: 0.8rem; font-weight: normal;">Sala RH</span><br>
+                    <strong id="bolha-temp" style="font-size: 1.5rem;">-- °C</strong>
                 </div>
             </div>
-
-            <div id="view-fleet" class="dash-view">
-                <h2 style="font-size: 2rem; margin-bottom: 2rem;">Gestão de Frota</h2>
-                <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid #EEE;">
-                            <th style="padding: 1rem;">ID do Dispositivo</th>
-                            <th style="padding: 1rem;">Localização</th>
-                            <th style="padding: 1rem;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr style="border-bottom: 1px solid #EEE;">
-                            <td style="padding: 1rem; font-weight: bold;">vaso_rh_01</td>
-                            <td style="padding: 1rem;">Setor RH</td>
-                            <td style="padding: 1rem; color: #00C853; font-weight: bold;">● Recebendo Dados</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
         </div>
     </div>
 
     <script>
-        /* =================================================================
-           1. CONEXÃO COM O BANCO DE DADOS (SUPABASE)
-           ================================================================= */
-        const _supabaseUrl = 'https://zbnpwicdgobxkvesgayr.supabase.co';
-        const _supabaseKey = 'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc';
-        const supabaseClient = supabase.createClient(_supabaseUrl, _supabaseKey);
-
-        /* =================================================================
-           2. SISTEMA DE LOGIN E TRANSIÇÃO DE TELA
-           ================================================================= */
-        const loginForm = document.getElementById('loginForm');
-        
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const token = document.getElementById('securityToken').value.toUpperCase().trim();
-            const btn = document.getElementById('btnSubmitLogin');
-            const feedback = document.getElementById('loginFeedback');
+        document.addEventListener('DOMContentLoaded', () => {
             
-            btn.innerText = "Buscando Servidor...";
-            feedback.innerText = "";
+            // 1. Controle do Modal (Funciona mesmo sem internet)
+            const vitrine = document.getElementById('vitrineLayer');
+            const modal = document.getElementById('loginModal');
+            const dashboard = document.getElementById('corporateDashboard');
+            
+            document.getElementById('abrirModalLogin').addEventListener('click', (e) => {
+                e.preventDefault();
+                modal.classList.add('active');
+            });
+            
+            document.getElementById('fecharModal').addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+            
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                location.reload();
+            });
 
-            // Verifica se a empresa existe no Supabase
-            const { data: empresa, error } = await supabaseClient
-                .from('empresas')
-                .select('*')
-                .eq('id_acesso', token)
-                .single();
+            // 2. Conexão Supabase Protegida
+            try {
+                const supabaseClient = supabase.createClient(
+                    'https://zbnpwicdgobxkvesgayr.supabase.co', 
+                    'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc'
+                );
 
-            btn.innerText = "Autenticar";
+                // 3. Sistema de Login
+                document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const token = document.getElementById('securityToken').value.toUpperCase().trim();
+                    const btn = document.getElementById('btnSubmitLogin');
+                    const feedback = document.getElementById('loginFeedback');
+                    
+                    btn.innerText = "Buscando Servidor...";
+                    feedback.innerText = "";
 
-            if (empresa) {
-                // Sucesso: Esconde vitrine e mostra painel
-                document.getElementById('loginModal').classList.remove('active');
-                document.querySelector('.content-layer').style.display = 'none';
-                document.getElementById('corporateDashboard').style.display = 'block';
-                
-                // Inicia a busca de dados!
-                iniciarDadosReais();
-            } else {
-                // Dica caso não tenha configurado o banco direito:
-                if (token === "ARBO2026") {
-                    alert("Aviso: O banco não achou a credencial, mas vou forçar o login para você testar a tela!");
-                    document.getElementById('loginModal').classList.remove('active');
-                    document.querySelector('.content-layer').style.display = 'none';
-                    document.getElementById('corporateDashboard').style.display = 'block';
-                    iniciarDadosReais();
+                    const { data, error } = await supabaseClient
+                        .from('empresas')
+                        .select('*')
+                        .eq('id_acesso', token)
+                        .single();
+
+                    btn.innerText = "Autenticar";
+
+                    if (data) {
+                        modal.classList.remove('active');
+                        vitrine.style.display = 'none';
+                        dashboard.style.display = 'block';
+                        
+                        puxarDadosDoServidor(supabaseClient);
+                    } else {
+                        feedback.innerText = "Credencial incorreta ou servidor offline.";
+                    }
+                });
+
+            } catch (erro) {
+                console.error("Erro fatal no Supabase:", erro);
+                alert("Erro ao conectar com o banco de dados. O painel pode não funcionar corretamente.");
+            }
+
+            // 4. Função que busca os dados no Banco
+            async function puxarDadosDoServidor(supabase) {
+                // Tenta puxar a última leitura já salva
+                const { data: historico } = await supabase
+                    .from('leituras')
+                    .select('*')
+                    .order('id', { ascending: false })
+                    .limit(1);
+
+                if (historico && historico.length > 0) {
+                    atualizarTela(historico[0].temperatura);
                 } else {
-                    feedback.innerText = "Credencial não encontrada no Banco de Dados.";
+                    document.getElementById('liveStatus').innerText = "Online (Sem Dados)";
+                }
+
+                // Fica ouvindo novas leituras do ESP32
+                supabase
+                    .channel('arbo-live')
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leituras' }, payload => {
+                        atualizarTela(payload.new.temperatura);
+                    })
+                    .subscribe();
+            }
+
+            // 5. Função que pinta a tela com o valor
+            function atualizarTela(temperatura) {
+                document.getElementById('liveTemp').innerHTML = `${temperatura} <span style="font-size: 1.5rem;">°C</span>`;
+                document.getElementById('bolha-temp').innerText = `${temperatura} °C`;
+                document.getElementById('liveStatus').innerText = "Recebendo...";
+                document.getElementById('liveStatus').style.color = "#00C853";
+
+                const nr17 = document.getElementById('nr17Status');
+                const bolha = document.getElementById('bolha-vaso');
+
+                if (temperatura > 26) {
+                    nr17.innerHTML = '<span class="stamp-icon">●</span> NR-17: ALERTA TÉRMICO';
+                    nr17.style.background = "rgba(255, 59, 92, 0.1)";
+                    nr17.style.color = "#FF3B5C";
+                    bolha.className = "bubble red";
+                } else {
+                    nr17.innerHTML = '<span class="stamp-icon">●</span> NR-17: AMBIENTE CONFORME';
+                    nr17.style.background = "rgba(0, 0, 0, 0.05)";
+                    nr17.style.color = "#000000";
+                    bolha.className = "bubble green";
                 }
             }
         });
-
-        /* =================================================================
-           3. O CÉREBRO: BUSCANDO E OUVINDO OS DADOS DO ESP32
-           ================================================================= */
-        async function iniciarDadosReais() {
-            console.log("Iniciando comunicação com o servidor...");
-
-            // 1º PASSO: BUSCAR O ÚLTIMO DADO JÁ SALVO PARA NÃO FICAR EM BRANCO
-            const { data: historico, error } = await supabaseClient
-                .from('leituras')
-                .select('*')
-                .order('id', { ascending: false }) // Pega do mais novo pro mais velho
-                .limit(1);
-
-            if (historico && historico.length > 0) {
-                console.log("Informação recuperada do servidor:", historico[0]);
-                atualizarInterface(historico[0]);
-            } else {
-                console.log("Nenhuma leitura salva encontrada. Aguardando novo envio do ESP32...");
-            }
-
-            // 2º PASSO: FICAR OUVINDO NOVAS INSERÇÕES EM TEMPO REAL
-            supabaseClient
-                .channel('arbo-live')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leituras' }, payload => {
-                    console.log("NOVO DADO RECEBIDO DO ESP32!", payload.new);
-                    atualizarInterface(payload.new);
-                })
-                .subscribe();
-        }
-
-        /* Função que injeta a informação do servidor no HTML */
-        function atualizarInterface(leitura) {
-            const temp = leitura.temperatura;
-            const umid = leitura.umidade || "--";
-
-            // Atualiza os textos de Temperatura e Umidade
-            document.getElementById('liveConsumptionValue').innerHTML = `${temp} <span style="font-size: 1.5rem;">°C</span>`;
-            document.getElementById('liveHumidityValue').innerHTML = `${umid} <span style="font-size: 1.5rem;">%</span>`;
-            document.getElementById('bolha-temp').innerText = `${temp} °C`;
-
-            // Lógica do Status e Cor (Conformidade NR-17 > 26 graus)
-            const nr17Status = document.getElementById('nr17Status');
-            const bolhaMapa = document.getElementById('bolha-vaso01');
-
-            if (temp > 26) {
-                // Quente: Alerta Vermelho
-                nr17Status.innerHTML = '<span class="stamp-icon">●</span> NR-17: ALERTA TÉRMICO';
-                nr17Status.style.background = "rgba(255, 59, 92, 0.1)";
-                nr17Status.style.color = "#FF3B5C";
-                nr17Status.style.borderColor = "#FF3B5C";
-                bolhaMapa.className = "bubble red";
-            } else {
-                // Ideal: Conformidade Verde/Preto
-                nr17Status.innerHTML = '<span class="stamp-icon">●</span> NR-17: AMBIENTE CONFORME';
-                nr17Status.style.background = "rgba(0, 0, 0, 0.05)";
-                nr17Status.style.color = "#000000";
-                nr17Status.style.borderColor = "#000000";
-                bolhaMapa.className = "bubble green";
-            }
-        }
-
-        /* =================================================================
-           4. NAVEGAÇÃO, MODAIS E ANIMAÇÕES (Sua Vitrine)
-           ================================================================= */
-        
-        // Abrir/Fechar Modal de Login
-        document.querySelector('.corporate-login').addEventListener('click', e => {
-            e.preventDefault();
-            document.getElementById('loginModal').classList.add('active');
-        });
-        document.getElementById('closeModal').addEventListener('click', () => {
-            document.getElementById('loginModal').classList.remove('active');
-        });
-
-        // Botão de Sair (Recarrega a página voltando pra vitrine)
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            location.reload();
-        });
-
-        // Menu Lateral (Dashboard)
-        const sidebar = document.getElementById('sidebarMenu');
-        document.getElementById('menuToggleBtn').addEventListener('click', () => sidebar.classList.add('open'));
-        document.getElementById('closeSidebarBtn').addEventListener('click', () => sidebar.classList.remove('open'));
-
-        // Troca de Abas
-        const links = document.querySelectorAll('.sidebar-link');
-        const views = document.querySelectorAll('.dash-view');
-        links.forEach(link => {
-            link.addEventListener('click', e => {
-                e.preventDefault();
-                links.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-                views.forEach(v => v.classList.remove('active-view'));
-                document.getElementById(link.dataset.view).classList.add('active-view');
-                sidebar.classList.remove('open'); // Fecha o menu no celular
-            });
-        });
-
-        // Efeito de Scroll da Header e Animação Reveal
-        const header = document.querySelector('.site-header');
-        let lastScroll = window.scrollY;
-
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.scrollY;
-            if (currentScroll > lastScroll && currentScroll > 100) {
-                header.classList.add('is-hidden');
-            } else {
-                header.classList.remove('is-hidden');
-            }
-            if (currentScroll > 50) {
-                header.classList.add('scrolled-bg');
-            } else {
-                header.classList.remove('scrolled-bg');
-            }
-            lastScroll = currentScroll;
-        });
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('is-visible');
-            });
-        }, { threshold: 0.15 });
-
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
     </script>
 </body>
 </html>

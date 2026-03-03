@@ -389,35 +389,68 @@
            ========================================================== */
         let temperaturaReal = 23.0; // Valor inicial
 
-        function iniciarDadosReais() {
-            // Escuta a tabela leituras sem precisar atualizar a página
+        /* ==========================================================
+           3. CONEXÃO COM O SERVIDOR (PUXA DADOS E ESCUTA)
+           ========================================================== */
+        let temperaturaReal = 0;
+
+        async function iniciarDadosReais() {
+            console.log("Conectando ao Servidor Supabase...");
+
+            // 1. PUXA A ÚLTIMA INFORMAÇÃO QUE JÁ ESTÁ NO SERVIDOR
+            const { data: historico, error } = await supabaseClient
+                .from('leituras')
+                .select('*'); // Busca tudo
+
+            if (error) {
+                console.error("Erro ao buscar do servidor:", error);
+            }
+
+            if (historico && historico.length > 0) {
+                // Pega a última leitura do array (a mais recente enviada pelo ESP32)
+                const ultimoDadoDoServidor = historico[historico.length - 1];
+                console.log("Último dado encontrado no servidor:", ultimoDadoDoServidor);
+                atualizarTela(ultimoDadoDoServidor);
+            }
+
+            // 2. FICA OUVINDO SE O ESP32 MANDAR UM DADO NOVO AGORA
             supabaseClient
                 .channel('dados-arbo')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leituras' }, payload => {
-                    const leitura = payload.new;
-                    temperaturaReal = leitura.temperatura;
-
-                    // Atualiza o texto na tela
-                    const valueEl = document.getElementById('liveConsumptionValue');
-                    if (valueEl) {
-                        valueEl.innerHTML = temperaturaReal.toFixed(1) + ' <span style="font-size:1.2rem;color:#000;">°C</span>';
-                    }
-
-                    // Muda a cor da Bolinha do RH no Mapa
-                    const bolhas = document.querySelectorAll('.bubble');
-                    bolhas.forEach(bolha => {
-                        if (bolha.textContent.trim() === "RH") {
-                            if (temperaturaReal > 26) {
-                                bolha.className = 'bubble red';
-                                document.getElementById('nr17Status').innerHTML = '<span class="stamp-icon">●</span> NR-17: ALERTA TÉRMICO';
-                            } else {
-                                bolha.className = 'bubble green';
-                                document.getElementById('nr17Status').innerHTML = '<span class="stamp-icon">●</span> NR-17: AMBIENTE CONFORME';
-                            }
-                        }
-                    });
+                    console.log("DADO NOVO CHEGOU DO ESP32!", payload.new);
+                    atualizarTela(payload.new);
                 })
                 .subscribe();
+        }
+
+        // FUNÇÃO QUE JOGA A INFORMAÇÃO NO HTML
+        function atualizarTela(leitura) {
+            temperaturaReal = leitura.temperatura;
+
+            // Atualiza o número gigante de Temperatura
+            const valueEl = document.getElementById('liveConsumptionValue');
+            if (valueEl) {
+                valueEl.innerHTML = temperaturaReal + ' <span style="font-size:1.2rem;color:#000;">°C</span>';
+            }
+
+            // Atualiza a cor do texto NR-17 e da bolinha do Mapa
+            const bolhas = document.querySelectorAll('.bubble');
+            bolhas.forEach(bolha => {
+                // Procura a bolinha do RH
+                if (bolha.textContent.trim().includes("RH") || bolha.textContent.trim().includes("vaso_rh_01")) {
+                    if (temperaturaReal > 26) { // Muito quente
+                        bolha.className = 'bubble red';
+                        document.getElementById('nr17Status').innerHTML = '<span class="stamp-icon">●</span> NR-17: ALERTA TÉRMICO';
+                        document.getElementById('nr17Status').style.background = "rgba(255, 59, 92, 0.1)";
+                        document.getElementById('nr17Status').style.color = "#FF3B5C";
+                    } else { // Temperatura Ideal
+                        bolha.className = 'bubble green';
+                        document.getElementById('nr17Status').innerHTML = '<span class="stamp-icon">●</span> NR-17: AMBIENTE CONFORME';
+                        document.getElementById('nr17Status').style.background = "rgba(0, 0, 0, 0.05)";
+                        document.getElementById('nr17Status').style.color = "#000000";
+                    }
+                }
+            });
         }
 
         /* ==========================================================
@@ -553,3 +586,4 @@
     </script>
 </body>
 </html>
+

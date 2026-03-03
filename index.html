@@ -1033,7 +1033,21 @@
             });
         }
     </script>
+    <script>
+        // COLOQUE AQUI (LOGO APÓS A TAG <SCRIPT>)
+        const _supabaseUrl = 'https://zbnpwicdgobxkvesgayr.supabase.co';
+        const _supabaseKey = 'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc';
+        
+        // Cuidado: aqui usamos 'supabase.createClient' porque importamos via CDN
+        const supabaseClient = supabase.createClient(_supabaseUrl, _supabaseKey);
+
+        let temperaturaReal = 23.0; 
+
+        // ================== RESTO DO SEU CÓDIGO (MENU HAMBURGER, ETC) ==================
+        const menuToggle = document.getElementById('menuToggleBtn');
+        // ...
 </body>
 
 
 </html>
+

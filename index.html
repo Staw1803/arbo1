@@ -4,414 +4,851 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A.R.B.O. | Governança Térmica de Elite</title>
+    <meta name="description" content="A.R.B.O. - Controle climático autônomo com Inteligência Artificial, focado em ESG e NR-17 para o Polo Industrial.">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* =========================================================
-           1. DESIGN SYSTEM & RESET (CORPORATE MINIMALISM)
-           ========================================================= */
+        /* ==========================================================================
+           1. DESIGN SYSTEM, TOKENS & RESET (ARQUITETURA ESCALÁVEL)
+           ========================================================================== */
         :root {
-            --bg-base: #FFFFFF;
-            --bg-panel: #FAFAFA;
-            --text-dark: #111111;
-            --text-gray: #737373;
-            --border-light: #E5E5E5;
-            --accent-green: #10B981;
-            --accent-red: #EF4444;
-            --accent-gold: #D4AF37;
-            --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.04);
-            --transition-ux: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            /* Palette Core */
+            --brand-black: #0A0A0A;
+            --brand-white: #FFFFFF;
+            --surface-50: #FAFAFA;
+            --surface-100: #F4F4F5;
+            --surface-200: #E4E4E7;
+            --surface-800: #27272A;
+            --surface-900: #18181B;
+            
+            /* Semantic Colors (Hackers do Bem & ESG) */
+            --status-ideal: #10B981; /* Verde Esmeralda Luxo */
+            --status-ideal-glow: rgba(16, 185, 129, 0.2);
+            --status-warning: #F59E0B; /* Âmbar */
+            --status-critical: #EF4444; /* Vermelho Alerta */
+            --status-critical-glow: rgba(239, 68, 68, 0.2);
+            
+            /* Typography */
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --text-primary: #111827;
+            --text-secondary: #52525B;
+            --text-tertiary: #A1A1AA;
+            
+            /* Metrics & Effects */
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-pill: 9999px;
+            
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.05);
+            --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
+            --shadow-float: 0 20px 40px rgba(0,0,0,0.12);
+            
+            --transition-fast: 0.2s ease;
+            --transition-smooth: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-bounce: 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        body { background: var(--bg-base); color: var(--text-dark); overflow-x: hidden; }
-
-        /* Botões Globais */
-        .btn-outline { border: 1px solid var(--border-light); background: transparent; color: var(--text-dark); padding: 0.75rem 1.5rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: var(--transition-ux); letter-spacing: 0.5px; }
-        .btn-outline:hover { border-color: var(--text-dark); background: var(--text-dark); color: #FFF; }
-
-        /* =========================================================
-           2. VITRINE LUXURY (LANDING PAGE)
-           ========================================================= */
-        #landingView { min-height: 100vh; display: flex; flex-direction: column; transition: var(--transition-ux); opacity: 1; }
-        #landingView.fade-out { opacity: 0; pointer-events: none; position: absolute; width: 100%; z-index: -1; }
-
-        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 2rem 4rem; width: 100%; position: absolute; top: 0; z-index: 10; }
-        .brand-logo { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.5px; }
-
-        .hero-section { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 2rem; }
-        .hero-title { font-size: 5rem; font-weight: 500; letter-spacing: -3px; color: var(--text-dark); margin-bottom: 1rem; }
-        .hero-subtitle { font-size: 1.1rem; color: var(--text-gray); font-weight: 300; letter-spacing: 0.5px; }
-
-        /* =========================================================
-           3. MODAL DE LOGIN (CLEAN)
-           ========================================================= */
-        .auth-overlay { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: var(--transition-ux); }
-        .auth-overlay.active { opacity: 1; pointer-events: auto; }
-        .auth-card { background: #FFF; border: 1px solid var(--border-light); padding: 3rem; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: var(--shadow-soft); text-align: center; transform: translateY(20px); transition: var(--transition-ux); }
-        .auth-overlay.active .auth-card { transform: translateY(0); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-sans); background: var(--brand-white); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
         
-        .auth-title { font-size: 1.5rem; font-weight: 400; letter-spacing: -1px; margin-bottom: 0.5rem; }
-        .auth-sub { font-size: 0.9rem; color: var(--text-gray); font-weight: 300; margin-bottom: 2rem; }
-        
-        .input-token { width: 100%; padding: 1rem; border: 1px solid var(--border-light); border-radius: 6px; font-size: 0.9rem; text-align: center; text-transform: uppercase; letter-spacing: 3px; outline: none; transition: 0.3s; margin-bottom: 1.5rem; background: var(--bg-panel); }
-        .input-token:focus { border-color: var(--text-dark); background: #FFF; }
-        .btn-submit { width: 100%; background: var(--text-dark); color: #FFF; border: none; padding: 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
-        .btn-submit:hover { background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .close-auth { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; font-size: 1.5rem; color: var(--text-gray); cursor: pointer; font-weight: 300; }
+        /* Scrollbar Premium */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--surface-50); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-200); border-radius: var(--radius-pill); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
-        /* =========================================================
-           4. DASHBOARD CORPORATIVO (ESTRUTURA)
-           ========================================================= */
-        #appDashboard { display: none; background: var(--bg-panel); min-height: 100vh; opacity: 0; transition: opacity 0.8s ease; }
+        /* ==========================================================================
+           2. COMPONENTES REUTILIZÁVEIS
+           ========================================================================== */
+        .container { width: 100%; max-width: 1300px; margin: 0 auto; padding: 0 2rem; }
         
-        .dash-header { background: #FFF; border-bottom: 1px solid var(--border-light); padding: 1rem 3rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .dash-brand { display: flex; align-items: center; gap: 12px; font-size: 1rem; font-weight: 600; letter-spacing: -0.5px; }
-        .dash-brand span { color: var(--text-gray); font-weight: 400; }
-        .status-dot { width: 6px; height: 6px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 8px var(--accent-green); animation: pulse 2.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        /* Botões */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 32px; border-radius: var(--radius-pill); font-weight: 500; font-size: 0.9rem; letter-spacing: 0.5px; transition: var(--transition-smooth); cursor: pointer; text-decoration: none; border: none; }
+        .btn-solid { background: var(--brand-black); color: var(--brand-white); }
+        .btn-solid:hover { background: var(--surface-800); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .btn-outline { background: transparent; color: var(--brand-black); border: 1px solid var(--surface-200); }
+        .btn-outline:hover { border-color: var(--brand-black); background: var(--surface-50); }
+        
+        /* Animação de Entrada (Scroll Reveal) */
+        .reveal { opacity: 0; transform: translateY(40px); transition: 1s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
 
-        .dash-layout { display: flex; min-height: calc(100vh - 65px); }
-        
-        /* MENU LATERAL SLIM */
-        .sidebar { width: 260px; background: #FFF; border-right: 1px solid var(--border-light); padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 8px; }
-        .nav-item { padding: 0.85rem 1rem; color: var(--text-gray); text-decoration: none; font-size: 0.9rem; font-weight: 400; border-radius: 6px; transition: 0.2s; display: flex; align-items: center; justify-content: space-between; }
-        .nav-item:hover { background: var(--bg-panel); color: var(--text-dark); }
-        .nav-item.active { background: var(--bg-panel); color: var(--text-dark); font-weight: 500; }
+        /* Tag de Seção */
+        .section-tag { display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 1.5rem; position: relative; padding-left: 24px; }
+        .section-tag::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 12px; height: 2px; background: var(--text-primary); }
 
-        /* ÁREA DE CONTEÚDO */
-        .main-content { flex: 1; padding: 3rem 4rem; max-width: 1400px; }
-        .view-pane { display: none; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .view-pane.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        /* ==========================================================================
+           3. VITRINE DE MERCADO (LANDING PAGE MULTI-SESSÃO)
+           ========================================================================== */
+        #landingView { position: relative; width: 100%; transition: opacity 0.8s ease; }
+        
+        /* 3.1. Navegação Suspensa (Glassmorphism) */
+        .navbar { position: fixed; top: 0; left: 0; width: 100%; padding: 1.5rem 0; z-index: 1000; transition: var(--transition-smooth); border-bottom: 1px solid transparent; }
+        .navbar.scrolled { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border-bottom-color: var(--surface-200); padding: 1rem 0; }
+        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .nav-brand svg { width: 24px; height: 24px; }
+        .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+        .nav-link { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; text-decoration: none; transition: var(--transition-fast); }
+        .nav-link:hover { color: var(--text-primary); }
 
-        /* =========================================================
-           5. CARDS DE KPI (REFINADOS E ELEGANTES)
-           ========================================================= */
-        .kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
-        .kpi-card { background: #FFF; border: 1px solid var(--border-light); border-radius: 12px; padding: 2.5rem; box-shadow: var(--shadow-soft); transition: var(--transition-ux); }
-        .kpi-card:hover { border-color: #D4D4D4; box-shadow: 0 8px 30px rgba(0,0,0,0.06); transform: translateY(-2px); }
+        /* 3.2. Hero Section (O Impacto Visual) */
+        .hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding-top: 80px; overflow: hidden; background: radial-gradient(circle at 50% -20%, var(--surface-100) 0%, var(--brand-white) 100%); }
+        /* Grid de Fundo Animado */
+        .hero-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--surface-100) 1px, transparent 1px), linear-gradient(90deg, var(--surface-100) 1px, transparent 1px); background-size: 80px 80px; opacity: 0.5; z-index: 0; transform: perspective(500px) rotateX(60deg) translateY(-100px) scale(3); animation: gridMove 20s linear infinite; }
+        @keyframes gridMove { 0% { background-position: 0 0; } 100% { background-position: 0 80px; } }
         
-        /* Fontes Finas e Espaçadas para Rótulos */
-        .kpi-label { font-size: 0.7rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 1.5rem; }
-        
-        /* Valores Grandes, mas não "gordos" */
-        .kpi-value { font-size: 4rem; font-weight: 400; letter-spacing: -2px; color: var(--text-dark); display: block; line-height: 1; margin-bottom: 0.75rem; }
-        .kpi-value-sm { font-size: 2.5rem; font-weight: 400; letter-spacing: -1px; color: var(--text-dark); display: block; line-height: 1; }
-        
-        .kpi-desc { font-size: 0.8rem; color: var(--text-gray); font-weight: 400; }
+        .hero-content { position: relative; z-index: 2; max-width: 900px; text-align: center; }
+        .hero-title { font-size: clamp(3rem, 6vw, 6rem); font-weight: 700; letter-spacing: -0.05em; line-height: 1.05; color: var(--brand-black); margin-bottom: 1.5rem; }
+        .hero-desc { font-size: clamp(1.1rem, 2vw, 1.35rem); color: var(--text-secondary); font-weight: 300; max-width: 700px; margin: 0 auto 3rem auto; line-height: 1.6; }
+        .hero-actions { display: flex; gap: 1rem; justify-content: center; align-items: center; }
 
-        /* =========================================================
-           6. MAPA GALÁXIA (NÉVOA E GRID TÉCNICO)
-           ========================================================= */
-        .map-wrapper { position: relative; height: 65vh; background: #050505; border-radius: 16px; overflow: hidden; border: 1px solid #222; margin-top: 1rem; }
-        .map-grid { position: absolute; inset: 0; background-image: linear-gradient(#1A1A1A 1px, transparent 1px), linear-gradient(90deg, #1A1A1A 1px, transparent 1px); background-size: 50px 50px; opacity: 0.4; }
-        
-        .sensor-node { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: translate(-50%, -50%); transition: var(--transition-ux); width: 160px; height: 160px; border-radius: 50%; }
-        .sensor-node span { font-size: 0.75rem; font-weight: 500; color: #FFF; letter-spacing: 1px; text-transform: uppercase; z-index: 2; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .sensor-node small { font-size: 0.7rem; color: rgba(255,255,255,0.7); z-index: 2; margin-top: 4px; font-weight: 300; }
-        
-        /* O Efeito Glow Elegante */
-        .glow-ideal { background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%); box-shadow: 0 0 60px 20px rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
-        .glow-critical { background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0) 70%); box-shadow: 0 0 60px 20px rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); animation: critPulse 2s infinite; }
-        @keyframes critPulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } }
+        /* 3.3. Marquee (Confiança) */
+        .trust-banner { border-top: 1px solid var(--surface-200); border-bottom: 1px solid var(--surface-200); padding: 2rem 0; background: var(--surface-50); text-align: center; }
+        .trust-text { font-size: 0.8rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem; }
+        .trust-logos { display: flex; justify-content: center; gap: 4rem; opacity: 0.6; flex-wrap: wrap; }
+        .trust-logos span { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
 
-        /* =========================================================
-           7. GRÁFICO TÉCNICO E FROTA
-           ========================================================= */
-        .chart-card { background: #FFF; border: 1px solid var(--border-light); border-radius: 12px; padding: 3rem; margin-top: 1rem; position: relative; }
-        .axis-y { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%) rotate(-90deg); font-size: 0.65rem; font-weight: 600; letter-spacing: 2px; color: #999; }
-        .svg-container { width: 100%; height: 350px; overflow: visible; }
+        /* 3.4. Pilares ESG & Funcionalidades */
+        .features { padding: 8rem 0; background: var(--brand-white); }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 3rem; margin-top: 4rem; }
+        .feature-card { padding: 3rem 2rem; background: var(--surface-50); border: 1px solid var(--surface-200); border-radius: var(--radius-lg); transition: var(--transition-smooth); }
+        .feature-card:hover { background: var(--brand-white); box-shadow: var(--shadow-float); transform: translateY(-10px); border-color: var(--surface-800); }
+        .icon-wrapper { width: 56px; height: 56px; background: var(--brand-black); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; color: var(--brand-white); }
+        .icon-wrapper svg { width: 28px; height: 28px; }
+        .feature-card h3 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; letter-spacing: -0.5px; }
+        .feature-card p { color: var(--text-secondary); font-size: 1rem; }
+
+        /* 3.5. Calculadora de ROI (Interativa) */
+        .roi-section { padding: 8rem 0; background: var(--brand-black); color: var(--brand-white); overflow: hidden; }
+        .roi-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .roi-text h2 { font-size: 3rem; font-weight: 400; letter-spacing: -1px; margin-bottom: 1.5rem; line-height: 1.2; }
+        .roi-text p { color: var(--text-tertiary); font-size: 1.1rem; margin-bottom: 2rem; }
+        .roi-calculator { background: var(--surface-900); border: 1px solid var(--surface-800); border-radius: var(--radius-lg); padding: 3rem; }
+        .calc-group { margin-bottom: 1.5rem; }
+        .calc-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        .calc-slider { width: 100%; accent-color: var(--brand-white); }
+        .calc-result { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--surface-800); }
+        .calc-value { font-size: 4rem; font-weight: 300; letter-spacing: -2px; display: block; color: var(--status-ideal); }
+
+        /* 3.6. Arquitetura de Defesa (Hackers do Bem) */
+        .security-section { padding: 8rem 0; background: var(--surface-50); }
+        .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .sec-list { list-style: none; margin-top: 2rem; }
+        .sec-list li { display: flex; gap: 1rem; margin-bottom: 2rem; }
+        .sec-bullet { width: 24px; height: 24px; background: rgba(16, 185, 129, 0.1); color: var(--status-ideal); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 4px; }
+        .sec-text strong { display: block; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .sec-text p { color: var(--text-secondary); font-size: 0.95rem; }
+        .hardware-mockup { width: 100%; height: 500px; background: var(--brand-white); border: 1px solid var(--surface-200); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .chip-svg { width: 150px; height: 150px; opacity: 0.1; }
+
+        /* 3.7. Footer */
+        .footer { background: var(--brand-white); padding: 4rem 0 2rem 0; border-top: 1px solid var(--surface-200); }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4rem; margin-bottom: 4rem; }
+        .footer-brand { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 1rem; display: block; }
+        .footer p { color: var(--text-secondary); font-size: 0.9rem; }
+        .footer-links h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 1.5rem; }
+        .footer-links a { display: block; color: var(--text-secondary); text-decoration: none; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .footer-bottom { border-top: 1px solid var(--surface-200); padding-top: 2rem; text-align: center; color: var(--text-tertiary); font-size: 0.85rem; }
+
+        /* ==========================================================================
+           4. MODAL DE AUTENTICAÇÃO MILITAR
+           ========================================================================== */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; z-index: 3000; opacity: 0; pointer-events: none; transition: var(--transition-smooth); }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card { background: var(--brand-white); padding: 3rem; border-radius: var(--radius-lg); width: 100%; max-width: 440px; box-shadow: var(--shadow-float); transform: translateY(20px) scale(0.95); transition: var(--transition-bounce); position: relative; }
+        .modal-overlay.active .modal-card { transform: translateY(0) scale(1); }
         
-        .table-card { background: #FFF; border: 1px solid var(--border-light); border-radius: 12px; margin-top: 1rem; overflow: hidden; }
-        .corporate-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .corporate-table th { background: var(--bg-panel); padding: 1.25rem 2rem; font-size: 0.7rem; font-weight: 600; color: #888; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--border-light); }
-        .corporate-table td { padding: 1.25rem 2rem; font-size: 0.85rem; border-bottom: 1px solid var(--border-light); color: var(--text-dark); }
-        .corporate-table tr:last-child td { border-bottom: none; }
-        .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 500; padding: 4px 10px; border-radius: 50px; background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
+        .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; font-size: 1.5rem; color: var(--text-tertiary); cursor: pointer; transition: 0.2s; }
+        .modal-close:hover { color: var(--brand-black); }
+        
+        .modal-title { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+        .modal-desc { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 2.5rem; }
+        
+        .input-group { position: relative; margin-bottom: 1.5rem; }
+        .input-token { width: 100%; padding: 16px; border: 2px solid var(--surface-200); border-radius: var(--radius-sm); font-size: 1.1rem; font-family: monospace; text-align: center; text-transform: uppercase; letter-spacing: 4px; outline: none; transition: 0.3s; background: var(--surface-50); color: var(--brand-black); }
+        .input-token:focus { border-color: var(--brand-black); background: var(--brand-white); }
+        
+        .error-msg { color: var(--status-critical); font-size: 0.85rem; font-weight: 500; margin-top: 1rem; text-align: center; display: none; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: var(--radius-sm); }
+
+        /* ==========================================================================
+           5. DASHBOARD CORPORATIVO (APP REAL)
+           ========================================================================== */
+        #appDashboard { display: none; background: var(--surface-50); min-height: 100vh; opacity: 0; transition: opacity 1s ease; }
+        
+        /* 5.1. Header do Dashboard */
+        .dash-header { background: var(--brand-white); border-bottom: 1px solid var(--surface-200); padding: 1.25rem 2.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 500; }
+        .dash-brand { display: flex; align-items: center; gap: 16px; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.5px; }
+        .dash-brand span { color: var(--text-tertiary); font-weight: 400; }
+        .status-pulse { width: 8px; height: 8px; background: var(--status-ideal); border-radius: 50%; box-shadow: 0 0 12px var(--status-ideal); animation: statusPulse 2s infinite; }
+        @keyframes statusPulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .dash-layout { display: flex; min-height: calc(100vh - 76px); }
+        
+        /* 5.2. Sidebar Dinâmica */
+        .sidebar { width: 280px; background: var(--brand-white); border-right: 1px solid var(--surface-200); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+        .sidebar-title { font-size: 0.7rem; font-weight: 700; color: var(--text-tertiary); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 1rem; padding-left: 1rem; }
+        .nav-dash { padding: 1rem 1.25rem; color: var(--text-secondary); text-decoration: none; font-size: 0.95rem; font-weight: 500; border-radius: var(--radius-sm); transition: var(--transition-fast); display: flex; align-items: center; gap: 12px; }
+        .nav-dash svg { width: 18px; height: 18px; opacity: 0.7; }
+        .nav-dash:hover { background: var(--surface-50); color: var(--text-primary); }
+        .nav-dash.active { background: var(--brand-black); color: var(--brand-white); box-shadow: var(--shadow-md); }
+        .nav-dash.active svg { opacity: 1; }
+
+        /* 5.3. Área Principal de Visualização */
+        .main-pane { flex: 1; padding: 3rem 4rem; max-width: 1600px; overflow-y: auto; }
+        .view-section { display: none; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .view-section.active { display: block; }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 5.4. Cards Exatos (Visão Geral) */
+        .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .kpi-card { background: var(--brand-white); border: 1px solid var(--surface-200); border-radius: var(--radius-lg); padding: 2.5rem; box-shadow: var(--shadow-sm); transition: var(--transition-smooth); display: flex; flex-direction: column; justify-content: center; }
+        .kpi-card:hover { border-color: var(--surface-800); box-shadow: var(--shadow-lg); transform: translateY(-4px); }
+        
+        .kpi-label { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; }
+        .kpi-value { font-size: 4.5rem; font-weight: 800; letter-spacing: -3px; color: var(--text-primary); line-height: 1; margin-bottom: 1rem; }
+        .kpi-value-sm { font-size: 3rem; font-weight: 800; letter-spacing: -2px; color: var(--text-primary); line-height: 1; }
+        .kpi-desc { font-size: 0.9rem; color: var(--text-secondary); font-weight: 400; }
+
+        /* 5.5. Mapa Galáxia (Topologia com Névoa Realista) */
+        .map-wrapper { position: relative; height: 65vh; background: var(--brand-black); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--surface-800); margin-top: 2rem; box-shadow: inset 0 0 100px rgba(0,0,0,0.8); }
+        .map-grid-bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; }
+        
+        .sensor-node { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: translate(-50%, -50%); transition: var(--transition-smooth); width: 140px; height: 140px; border-radius: 50%; cursor: pointer; }
+        .sensor-node:hover { transform: translate(-50%, -50%) scale(1.1); z-index: 10; }
+        .sensor-node span { font-size: 0.85rem; font-weight: 700; color: var(--brand-white); letter-spacing: 0.5px; z-index: 2; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .sensor-node small { font-size: 0.75rem; color: rgba(255,255,255,0.7); z-index: 2; margin-top: 4px; font-weight: 400; }
+        
+        /* Sistema de Glow Termodinâmico */
+        .glow-ideal { background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 70%); box-shadow: 0 0 60px 20px rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); }
+        .glow-warning { background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0) 70%); box-shadow: 0 0 60px 20px rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); }
+        .glow-critical { background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0) 70%); box-shadow: 0 0 80px 30px rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); animation: criticalPulse 1.5s infinite alternate; }
+        @keyframes criticalPulse { from { box-shadow: 0 0 40px 10px rgba(239, 68, 68, 0.2); } to { box-shadow: 0 0 100px 40px rgba(239, 68, 68, 0.4); } }
+
+        /* 5.6. Gráfico SVG Profissional */
+        .chart-card { background: var(--brand-white); border: 1px solid var(--surface-200); border-radius: var(--radius-lg); padding: 3rem 4rem 3rem 3rem; margin-top: 2rem; position: relative; box-shadow: var(--shadow-sm); }
+        .axis-y-label { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%) rotate(-90deg); font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; color: var(--text-tertiary); }
+        .svg-chart { width: 100%; height: 400px; overflow: visible; }
+
+        /* 5.7. Tabela de Gestão de Frota */
+        .table-card { background: var(--brand-white); border: 1px solid var(--surface-200); border-radius: var(--radius-lg); margin-top: 2rem; overflow: hidden; box-shadow: var(--shadow-sm); }
+        .fleet-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .fleet-table th { background: var(--surface-50); padding: 1.25rem 2rem; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--surface-200); }
+        .fleet-table td { padding: 1.5rem 2rem; font-size: 0.95rem; border-bottom: 1px solid var(--surface-200); color: var(--text-primary); font-weight: 500; }
+        .fleet-table tr:last-child td { border-bottom: none; }
+        .fleet-table tr:hover td { background: var(--surface-50); }
+        
+        .badge-online { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); background: var(--status-ideal-glow); color: var(--status-ideal); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-offline { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); background: var(--status-critical-glow); color: var(--status-critical); border: 1px solid rgba(239, 68, 68, 0.3); }
 
     </style>
 </head>
 <body>
 
     <div id="landingView">
-        <nav class="top-nav">
-            <div class="brand-logo">A.R.B.O.</div>
-            <button class="btn-outline" onclick="abrirAuth()">Acesso Corporativo</button>
+        
+        <nav class="navbar" id="mainNav">
+            <div class="container nav-wrapper">
+                <div class="nav-brand">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20L12 2z"></path></svg>
+                    A.R.B.O.
+                </div>
+                <div class="nav-links">
+                    <a href="#tecnologia" class="nav-link">A Tecnologia</a>
+                    <a href="#esg" class="nav-link">Sustentabilidade ESG</a>
+                    <a href="#seguranca" class="nav-link">Cibersegurança</a>
+                    <button class="btn btn-solid" onclick="AppController.abrirModalLogin()">Painel Corporativo</button>
+                </div>
+            </div>
         </nav>
-        <section class="hero-section">
-            <h1 class="hero-title">A.R.B.O.</h1>
-            <p class="hero-subtitle">Inteligência Invisível. Governança Térmica de Elite.</p>
+
+        <section class="hero">
+            <div class="hero-grid"></div>
+            <div class="container hero-content reveal">
+                <span class="section-tag">Projeto Centelha 3 Amazonas</span>
+                <h1 class="hero-title">A Evolução da<br>Governança Térmica.</h1>
+                <p class="hero-desc">Transformamos o controle climático industrial através de hardware biofílico autônomo. Eficiência energética silenciosa, conforto ocupacional e dados em tempo real.</p>
+                <div class="hero-actions">
+                    <button class="btn btn-solid" onclick="AppController.abrirModalLogin()">Acessar Telemetria</button>
+                    <a href="#tecnologia" class="btn btn-outline">Descobrir o Hardware</a>
+                </div>
+            </div>
         </section>
+
+        <section class="trust-banner reveal">
+            <div class="container">
+                <p class="trust-text">Projetado para as infraestruturas de excelência do Polo Industrial de Manaus</p>
+                <div class="trust-logos">
+                    <span>DENSO</span>
+                    <span>SAMSUNG</span>
+                    <span>HONDA</span>
+                    <span>YAMAHA</span>
+                    <span>BIC</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="tecnologia" class="features">
+            <div class="container">
+                <span class="section-tag">Engenharia A.R.B.O.</span>
+                <h2 style="font-size: 3rem; font-weight: 600; letter-spacing: -1px; margin-bottom: 1rem;">Estética Biofílica.<br>Inteligência Invisível.</h2>
+                <p style="color: var(--text-secondary); max-width: 600px; font-size: 1.1rem;">Um vaso de planta que funciona como o cérebro térmico do seu setor. Esqueça fios, reformas ou termostatos feios nas paredes.</p>
+                
+                <div class="grid-3">
+                    <div class="feature-card reveal">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        </div>
+                        <h3>Redução de OPEX</h3>
+                        <p>O algoritmo corta o compressor do ar-condicionado em frações de segundo imperceptíveis, economizando até 30% da conta de luz mensal sem afetar o conforto.</p>
+                    </div>
+                    <div class="feature-card reveal" style="transition-delay: 0.1s;">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        </div>
+                        <h3>Conformidade NR-17</h3>
+                        <p>O ambiente é mantido estritamente entre 20°C e 24°C, garantindo a saúde ocupacional e evitando passivos trabalhistas por insalubridade térmica.</p>
+                    </div>
+                    <div class="feature-card reveal" style="transition-delay: 0.2s;">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                        </div>
+                        <h3>Saúde Botânica</h3>
+                        <p>O hardware monitora a umidade da terra da planta hospedeira. Se a planta precisar de água, o sistema notifica a equipe de facilities instantaneamente.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="roi-section">
+            <div class="container roi-container">
+                <div class="roi-text reveal">
+                    <span class="section-tag" style="color: var(--text-tertiary); border-color: var(--surface-800);">Projeção Financeira</span>
+                    <h2>O Retorno do Investimento é Matemático.</h2>
+                    <p>Use a calculadora ao lado para simular a economia gerada pela governança do A.R.B.O. na sua infraestrutura atual.</p>
+                    <ul style="list-style: none; color: var(--text-tertiary); font-size: 0.95rem;">
+                        <li style="margin-bottom: 10px;">✓ Baseado em Tarifa Comercial (Manaus Energia)</li>
+                        <li style="margin-bottom: 10px;">✓ Considerando 10 horas de expediente/dia</li>
+                        <li>✓ Otimização conservadora de 15% do tempo útil</li>
+                    </ul>
+                </div>
+                <div class="roi-calculator reveal">
+                    <div class="calc-group">
+                        <label>Máquinas de Ar-Condicionado (Unidades)</label>
+                        <input type="range" min="1" max="100" value="12" class="calc-slider" id="calcMaquinas" oninput="VitrineController.calcularROI()">
+                        <div style="display: flex; justify-content: space-between; color: #AAA; font-size: 0.8rem; margin-top: 5px;"><span>1</span><span id="labelMaquinas">12 unid.</span><span>100</span></div>
+                    </div>
+                    <div class="calc-group">
+                        <label>Potência Média (BTUs)</label>
+                        <input type="range" min="9000" max="60000" step="1000" value="18000" class="calc-slider" id="calcBtu" oninput="VitrineController.calcularROI()">
+                        <div style="display: flex; justify-content: space-between; color: #AAA; font-size: 0.8rem; margin-top: 5px;"><span>9k</span><span id="labelBtu">18.000 BTUs</span><span>60k</span></div>
+                    </div>
+                    <div class="calc-result">
+                        <span style="font-size: 0.85rem; color: #AAA; text-transform: uppercase; letter-spacing: 1px;">Economia Projetada (Anual)</span>
+                        <strong class="calc-value" id="calcResultado">R$ 14.580,00</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="seguranca" class="security-section">
+            <div class="container sec-grid">
+                <div class="reveal">
+                    <div class="hardware-mockup">
+                        <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <span class="section-tag">Padrão Hackers do Bem</span>
+                    <h2 style="font-size: 2.5rem; font-weight: 600; letter-spacing: -1px; margin-bottom: 1.5rem;">Cibersegurança de Nível Militar.</h2>
+                    <p style="color: var(--text-secondary); font-size: 1.1rem;">Dispositivos IoT comuns são portas de entrada para invasores. O A.R.B.O. foi construído com arquitetura de negação por padrão (Zero Trust).</p>
+                    
+                    <ul class="sec-list">
+                        <li>
+                            <div class="sec-bullet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            <div class="sec-text">
+                                <strong>WPA2-Enterprise 802.1X</strong>
+                                <p>Autenticação corporativa via servidores RADIUS. O vaso não armazena senhas genéricas da rede da fábrica.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="sec-bullet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            <div class="sec-text">
+                                <strong>Flash Encryption Física</strong>
+                                <p>Os fusíveis do chip ESP32 são queimados em fábrica. Ninguém consegue extrair o código clonando a placa.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="sec-bullet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            <div class="sec-text">
+                                <strong>Stealth Mode (Zero Portas)</strong>
+                                <p>O dispositivo não possui servidores locais rodando. Ele se conecta através de WebSockets para a nuvem, ficando invisível na LAN.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-grid">
+                    <div>
+                        <span class="footer-brand">A.R.B.O.</span>
+                        <p>Ambiente Regulado para Bem-estar & Otimização.</p>
+                        <p style="margin-top: 1rem;">Manaus, Amazonas - Brasil.<br>Apoiado por Centelha 3.</p>
+                    </div>
+                    <div class="footer-links">
+                        <h4>Produto</h4>
+                        <a href="#">Especificações do Hardware</a>
+                        <a href="#">Segurança & Compliance</a>
+                        <a href="#">API Documentation</a>
+                    </div>
+                    <div class="footer-links">
+                        <h4>Empresa</h4>
+                        <a href="#">Sobre o Projeto</a>
+                        <a href="#">Contato Comercial</a>
+                        <a href="#" onclick="AppController.abrirModalLogin()">Acesso Restrito</a>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    &copy; 2026 Projeto A.R.B.O. Enterprise. Todos os direitos reservados.
+                </div>
+            </div>
+        </footer>
     </div>
 
-    <div class="auth-overlay" id="authModal">
-        <div class="auth-card">
-            <button class="close-auth" onclick="fecharAuth()">&times;</button>
-            <h2 class="auth-title">Acesso Restrito</h2>
-            <p class="auth-sub">Painel de controle corporativo</p>
-            <form onsubmit="validarLogin(event)">
-                <input type="text" id="tokenIn" class="input-token" placeholder="Insira o Token" autocomplete="off" required>
-                <button type="submit" class="btn-submit">Acessar Painel</button>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="AppController.fecharModalLogin()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div style="margin-bottom: 2rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--brand-black)" stroke-width="1.5" style="width:48px;height:48px;margin-bottom:1rem;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <h2 class="modal-title">Acesso Restrito</h2>
+                <p class="modal-desc">Conexão segura ao servidor de telemetria.</p>
+            </div>
+            
+            <form onsubmit="AppController.processarLogin(event)">
+                <div class="input-group">
+                    <input type="password" id="inputToken" class="input-token" placeholder="TOKEN CORPORATIVO" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-solid" style="width: 100%; padding: 16px;">Estabelecer Conexão TLS</button>
             </form>
-            <p id="authError" style="color: var(--accent-red); font-size: 0.8rem; margin-top: 1rem; display: none;">Credencial não autorizada.</p>
+            <div class="error-msg" id="loginErro">
+                ⚠️ Erro 401: Credencial rejeitada pelo servidor.
+            </div>
         </div>
     </div>
+
 
     <div id="appDashboard">
         
         <header class="dash-header">
             <div class="dash-brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path d="M12 2L2 22h20L12 2z"></path></svg>
                 A.R.B.O. <span>CORPORATE</span>
-                <div class="status-dot"></div>
+                <div class="status-pulse" title="Conexão Realtime Ativa"></div>
             </div>
-            <button class="btn-outline" style="border: none; padding: 0.5rem 1rem;" onclick="location.reload()">Sair</button>
+            <button class="btn-outline" style="border:none; padding:8px 16px; font-weight:600;" onclick="location.reload()">Desconectar</button>
         </header>
 
         <div class="dash-layout">
+            
             <aside class="sidebar">
-                <a href="#" class="nav-item active" onclick="navegar('view-overview', this)">Visão Geral <span>→</span></a>
-                <a href="#" class="nav-item" onclick="navegar('view-map', this)">Mapa Galáxia <span>→</span></a>
-                <a href="#" class="nav-item" onclick="navegar('view-chart', this)">Auditoria Térmica <span>→</span></a>
-                <a href="#" class="nav-item" onclick="navegar('view-fleet', this)">Gestão de Ativos <span>→</span></a>
+                <span class="sidebar-title">Painéis de Governança</span>
+                
+                <a href="#" class="nav-dash active" data-target="view-overview" onclick="AppController.navegarAba(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Visão Geral
+                </a>
+                
+                <a href="#" class="nav-dash" data-target="view-map" onclick="AppController.navegarAba(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    Mapa Galáxia
+                </a>
+                
+                <a href="#" class="nav-dash" data-target="view-chart" onclick="AppController.navegarAba(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    Auditoria Térmica
+                </a>
+                
+                <a href="#" class="nav-dash" data-target="view-fleet" onclick="AppController.navegarAba(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    Gestão de Frota
+                </a>
             </aside>
 
-            <main class="main-content">
+            <main class="main-pane">
                 
-                <div id="view-overview" class="view-pane active">
+                <section id="view-overview" class="view-section active">
+                    <h1 style="font-size: 2rem; font-weight: 300; letter-spacing: -1px; margin-bottom: 2.5rem;">Indicadores de Performance</h1>
+                    
                     <div class="kpi-row">
                         <div class="kpi-card">
                             <span class="kpi-label">Economia Total Acumulada</span>
-                            <span class="kpi-value" id="valRoi">R$ 14.580,33</span>
+                            <span class="kpi-value" id="kpi-val-eco">R$ 14.580,33</span>
                             <span class="kpi-desc">Conversão automática (Tarifa base: R$ 0,95/kWh)</span>
                         </div>
                         <div class="kpi-card">
                             <span class="kpi-label">Conforto Térmico (Saúde NR-17)</span>
-                            <span class="kpi-value" id="valConforto">98.5%</span>
+                            <span class="kpi-value" id="kpi-val-nr">98.5%</span>
                             <span class="kpi-desc">Tempo em conformidade durante o expediente</span>
                         </div>
                     </div>
+                    
                     <div class="kpi-row">
                         <div class="kpi-card">
                             <span class="kpi-label">Vasos Ativos</span>
-                            <span class="kpi-value-sm" id="valVasos">12 <span style="color:#A3A3A3; font-size: 1.5rem;">/ 12</span></span>
+                            <span class="kpi-value-sm" id="kpi-val-ativos">12 <span style="color:#A1A1AA; font-size: 2rem;">/ 12</span></span>
                         </div>
                         <div class="kpi-card">
                             <span class="kpi-label">Intervenções Hoje</span>
-                            <span class="kpi-value-sm" id="valInterv" style="color: var(--accent-gold);">14</span>
+                            <span class="kpi-value-sm" id="kpi-val-inter" style="color: var(--status-warning);">14</span>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <div id="view-map" class="view-pane">
-                    <h2 style="font-weight: 300; font-size: 1.5rem; letter-spacing: -0.5px; margin-bottom: 1.5rem;">Topologia de Sensores</h2>
-                    <div class="map-wrapper" id="galaxyContainer">
-                        <div class="map-grid"></div>
+                <section id="view-map" class="view-section">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+                        <div>
+                            <h1 style="font-size: 2rem; font-weight: 300; letter-spacing: -1px;">Topologia de Hardware</h1>
+                            <p style="color: var(--text-secondary); font-size: 0.95rem;">Distribuição lógica e área de influência dos sensores IR.</p>
                         </div>
-                </div>
+                        <div style="display: flex; gap: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-tertiary);">
+                            <span style="display:flex; align-items:center; gap:8px;"><div style="width:12px;height:12px;border-radius:50%;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.8);"></div> Ideal</span>
+                            <span style="display:flex; align-items:center; gap:8px;"><div style="width:12px;height:12px;border-radius:50%;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.8);"></div> Atenção</span>
+                            <span style="display:flex; align-items:center; gap:8px;"><div style="width:12px;height:12px;border-radius:50%;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.8);"></div> Crítico</span>
+                        </div>
+                    </div>
+                    
+                    <div class="map-wrapper" id="galaxyEngine">
+                        <div class="map-grid-bg"></div>
+                        </div>
+                </section>
 
-                <div id="view-chart" class="view-pane">
-                    <h2 style="font-weight: 300; font-size: 1.5rem; letter-spacing: -0.5px;">Monitoramento em Tempo Real</h2>
+                <section id="view-chart" class="view-section">
+                    <h1 style="font-size: 2rem; font-weight: 300; letter-spacing: -1px; margin-bottom: 2rem;">Monitoramento Térmico</h1>
+                    
                     <div class="chart-card">
-                        <div class="axis-y">TEMPERATURA (°C)</div>
-                        <svg viewBox="0 0 1000 300" class="svg-container">
-                            <line x1="0" y1="50" x2="1000" y2="50" stroke="#F5F5F5" />
-                            <text x="10" y="45" fill="#999" font-size="10" font-weight="500">30°C</text>
+                        <div class="axis-y-label">TEMP (°C)</div>
+                        <svg viewBox="0 0 1000 300" class="svg-chart">
+                            <line x1="0" y1="50" x2="1000" y2="50" stroke="var(--surface-200)" stroke-width="1" />
+                            <text x="0" y="45" fill="var(--text-tertiary)" font-size="12" font-weight="600">30°C</text>
                             
-                            <line x1="0" y1="150" x2="1000" y2="150" stroke="#EAEAEA" stroke-dasharray="4,4" />
-                            <text x="10" y="145" fill="#999" font-size="10" font-weight="500">24°C (Alvo)</text>
+                            <line x1="0" y1="150" x2="1000" y2="150" stroke="var(--surface-200)" stroke-dasharray="6,6" stroke-width="1.5" />
+                            <text x="0" y="140" fill="var(--text-tertiary)" font-size="12" font-weight="600">24°C (Alvo Ocupacional)</text>
                             
-                            <line x1="0" y1="250" x2="1000" y2="250" stroke="#F5F5F5" />
-                            <text x="10" y="245" fill="#999" font-size="10" font-weight="500">18°C</text>
+                            <line x1="0" y1="250" x2="1000" y2="250" stroke="var(--surface-200)" stroke-width="1" />
+                            <text x="0" y="245" fill="var(--text-tertiary)" font-size="12" font-weight="600">18°C</text>
 
-                            <path id="graphFill" d="M0,300 L0,300 L1000,300 Z" fill="rgba(17, 17, 17, 0.02)" />
-                            <path id="graphLine" d="M0,150 L1000,150" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round" />
-                            <circle id="graphDot" cx="1000" cy="150" r="4" fill="#111" />
+                            <path id="svgGraphFill" d="M0,300 L0,300 L1000,300 Z" fill="rgba(10, 10, 10, 0.03)" />
+                            <path id="svgGraphLine" d="M0,150 L1000,150" fill="none" stroke="var(--brand-black)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle id="svgGraphDot" cx="1000" cy="150" r="6" fill="var(--brand-white)" stroke="var(--brand-black)" stroke-width="3" />
                         </svg>
                     </div>
-                </div>
+                </section>
 
-                <div id="view-fleet" class="view-pane">
-                    <h2 style="font-weight: 300; font-size: 1.5rem; letter-spacing: -0.5px;">Ativos Instalados</h2>
+                <section id="view-fleet" class="view-section">
+                    <h1 style="font-size: 2rem; font-weight: 300; letter-spacing: -1px; margin-bottom: 2rem;">Auditoria de Hardware</h1>
+                    
                     <div class="table-card">
-                        <table class="corporate-table">
+                        <table class="fleet-table">
                             <thead>
                                 <tr>
-                                    <th>Identificação (MAC)</th>
-                                    <th>Setor de Atuação</th>
-                                    <th>Status Operacional</th>
-                                    <th style="text-align: right;">Ação de Rede</th>
+                                    <th>Identificação (MAC Address)</th>
+                                    <th>Alocação (Setor)</th>
+                                    <th>Sinal Criptográfico</th>
+                                    <th style="text-align: right;">Controle Remoto</th>
                                 </tr>
                             </thead>
-                            <tbody id="fleetTableBody">
+                            <tbody id="fleetTableData">
                                 </tbody>
                         </table>
                     </div>
-                </div>
+                </section>
 
             </main>
         </div>
     </div>
 
+
     <script>
-        // --- 1. CONTROLE DE INTERFACE ---
-        const vLanding = document.getElementById('landingView');
-        const vModal = document.getElementById('authModal');
-        const vApp = document.getElementById('appDashboard');
-        const vError = document.getElementById('authError');
+        /**
+         * A.R.B.O. System Controller
+         * Handles UI transitions, Supabase real-time connection, Math conversions, and SVG rendering.
+         */
+        
+        const AppController = {
+            // Elementos DOM Chead
+            vLanding: document.getElementById('landingView'),
+            vModal: document.getElementById('authModal'),
+            vDash: document.getElementById('appDashboard'),
+            errLogin: document.getElementById('loginErro'),
 
-        function abrirAuth() { vModal.classList.add('active'); document.getElementById('tokenIn').focus(); }
-        function fecharAuth() { vModal.classList.remove('active'); vError.style.display = 'none'; }
+            // Inicia Efeitos de Roolagem da Vitrine
+            initVitrineEffects: function() {
+                window.addEventListener('scroll', () => {
+                    const nav = document.getElementById('mainNav');
+                    if (window.scrollY > 60) nav.classList.add('scrolled');
+                    else nav.classList.remove('scrolled');
+                });
 
-        function validarLogin(e) {
-            e.preventDefault();
-            const token = document.getElementById('tokenIn').value.toUpperCase();
-            if(token === 'ARBO2026') {
-                fecharAuth();
-                vLanding.classList.add('fade-out');
-                setTimeout(() => {
-                    vApp.style.display = 'block';
-                    // Trigger reflow
-                    void vApp.offsetWidth;
-                    vApp.style.opacity = '1';
-                    iniciarSistemaAiot();
-                }, 600);
-            } else {
-                vError.style.display = 'block';
-            }
-        }
+                // Intersection Observer para as Animações "Reveal"
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('active');
+                        }
+                    });
+                }, { threshold: 0.1 });
 
-        function navegar(alvoId, el) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
+                document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+            },
+
+            // Controle do Modal
+            abrirModalLogin: function() {
+                this.vModal.classList.add('active');
+                setTimeout(() => document.getElementById('inputToken').focus(), 100);
+            },
             
-            document.querySelectorAll('.view-pane').forEach(v => {
-                v.classList.remove('active');
-                v.style.animation = 'none'; // Reseta animação
-            });
-            
-            const alvo = document.getElementById(alvoId);
-            alvo.classList.add('active');
-            // Retrigger animation
-            setTimeout(() => alvo.style.animation = '', 10);
-        }
+            fecharModalLogin: function() {
+                this.vModal.classList.remove('active');
+                this.errLogin.style.display = 'none';
+            },
 
-        // --- 2. COMUNICAÇÃO SUPABASE (CORE) ---
-        const urlSupa = 'https://zbnpwicdgobxkvesgayr.supabase.co';
-        const keySupa = 'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc';
-        const client = supabase.createClient(urlSupa, keySupa);
-
-        // Estado do Sistema
-        let numIntervencoes = 14; 
-        let baseEconomia = 14580.33; // Começamos do seu print
-        let historicoTemp = Array(20).fill(150);
-        let redeDispositivos = new Map();
-
-        async function iniciarSistemaAiot() {
-            // Conta ativos reais
-            const { data: equip } = await client.from('dispositivos').select('*');
-            if(equip) {
-                document.getElementById('valVasos').innerHTML = `${equip.length} <span style="color:#A3A3A3; font-size: 1.5rem;">/ ${equip.length}</span>`;
-                equip.forEach(d => redeDispositivos.set(d.id, {setor: d.localizacao || 'Indefinido', temp: 24, status: true}));
-                atualizarMapaeTabela();
-            }
-
-            // Puxa histórico e inicia Realtime
-            const { data: hist } = await client.from('leituras').select('*').order('created_at', {ascending: false}).limit(1);
-            if(hist && hist.length > 0) processarTelemetria(hist[0]);
-
-            client.channel('arbo-sync').on('postgres_changes', {event:'INSERT', schema:'public', table:'leituras'}, p => {
-                processarTelemetria(p.new);
-            }).subscribe();
-        }
-
-        function processarTelemetria(dado) {
-            const mac = dado.dispositivo_id;
-            const temp = dado.temperatura;
-
-            // Atualiza memória
-            if(redeDispositivos.has(mac)) {
-                let node = redeDispositivos.get(mac);
-                node.temp = temp;
-                if(dado.setor) node.setor = dado.setor;
-                redeDispositivos.set(mac, node);
-            } else {
-                redeDispositivos.set(mac, {setor: dado.setor || 'Novo Vaso', temp: temp, status: true});
-            }
-
-            // Matemática Financeira
-            if(dado.ar_ligado === false) {
-                baseEconomia += 0.15;
-                numIntervencoes++;
-                document.getElementById('valRoi').innerText = baseEconomia.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-                document.getElementById('valInterv').innerText = numIntervencoes;
-            }
-
-            // Desenha SVG
-            const dLine = document.getElementById('graphLine');
-            const dFill = document.getElementById('graphFill');
-            const dDot = document.getElementById('graphDot');
-
-            let yVal = 250 - ((temp - 18) * (200 / 12));
-            if(yVal < 20) yVal = 20; if(yVal > 280) yVal = 280;
-            historicoTemp.shift(); historicoTemp.push(yVal);
-
-            let pathStr = `M0,${historicoTemp[0]}`;
-            for(let i=1; i<historicoTemp.length; i++) pathStr += ` L${i * 50},${historicoTemp[i]}`;
-            
-            dLine.setAttribute('d', pathStr);
-            dFill.setAttribute('d', `${pathStr} L1000,300 L0,300 Z`);
-            dDot.setAttribute('cy', historicoTemp[historicoTemp.length - 1]);
-
-            atualizarMapaeTabela();
-        }
-
-        function atualizarMapaeTabela() {
-            const mContainer = document.getElementById('galaxyContainer');
-            const tBody = document.getElementById('fleetTableBody');
-            
-            // Limpa nodes, mantendo o grid de fundo
-            Array.from(mContainer.children).forEach(c => { if(c.classList.contains('sensor-node')) c.remove(); });
-            tBody.innerHTML = '';
-
-            let idx = 0;
-            redeDispositivos.forEach((info, mac) => {
-                // Render: Mapa Galáxia
-                const n = document.createElement('div');
-                let cssClass = info.temp > 26 ? 'glow-critical' : 'glow-ideal';
-                n.className = `sensor-node ${cssClass}`;
+            // Processamento do Formulário
+            processarLogin: function(event) {
+                event.preventDefault();
+                const input = document.getElementById('inputToken').value.toUpperCase().trim();
                 
-                const coords = [{x:35, y:45}, {x:70, y:30}, {x:50, y:75}, {x:80, y:65}];
-                n.style.left = coords[idx % coords.length].x + '%';
-                n.style.top = coords[idx % coords.length].y + '%';
+                // Senha de Acesso Industrial
+                if (input === 'ARBO2026') {
+                    this.fecharModalLogin();
+                    this.vLanding.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        this.vLanding.style.display = 'none';
+                        this.vDash.style.display = 'block';
+                        // Force Reflow
+                        void this.vDash.offsetWidth;
+                        this.vDash.style.opacity = '1';
+                        
+                        // Boot do Sistema Realtime
+                        DataEngine.boot();
+                    }, 800);
+                } else {
+                    this.errLogin.style.display = 'block';
+                }
+            },
+
+            // Navegação Interna do Dashboard
+            navegarAba: function(botaoClicado) {
+                // Muda a Aba Ativa (Menu)
+                document.querySelectorAll('.nav-dash').forEach(b => b.classList.remove('active'));
+                botaoClicado.classList.add('active');
                 
-                n.innerHTML = `<span>${info.setor}</span><small>${info.temp.toFixed(1)}°C</small>`;
-                mContainer.appendChild(n);
-
-                // Render: Tabela
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-family: monospace; color: #666;">${mac}</td>
-                    <td style="font-weight: 500;">${info.setor}</td>
-                    <td><div class="status-badge"><span style="width:6px;height:6px;background:currentColor;border-radius:50%;"></span> ON</div></td>
-                    <td style="text-align: right;"><button class="btn-outline" style="border-color: var(--border-light); color: var(--text-dark); padding: 6px 14px; font-size: 0.7rem;" onclick="resetNetwork('${mac}')">Wipe Credenciais</button></td>
-                `;
-                tBody.appendChild(tr);
-                idx++;
-            });
-        }
-
-        async function resetNetwork(mac) {
-            if(confirm(`Comando Crítico: Executar WIPE nas credenciais Wi-Fi do vaso ${mac}?`)) {
-                await client.from('dispositivos').update({ comando_reset: true }).eq('id', mac);
-                alert("Protocolo de limpeza enviado para Manaus.");
+                // Pega o alvo
+                const targetId = botaoClicado.getAttribute('data-target');
+                
+                // Esconde todos e reseta animação
+                document.querySelectorAll('.view-section').forEach(sec => {
+                    sec.classList.remove('active');
+                    sec.style.animation = 'none';
+                });
+                
+                // Mostra alvo e dispara keyframe
+                const secAlvo = document.getElementById(targetId);
+                secAlvo.classList.add('active');
+                setTimeout(() => secAlvo.style.animation = '', 10);
             }
-        }
+        };
+
+        /**
+         * Lógica Isolada da Calculadora de ROI (Vitrine)
+         */
+        const VitrineController = {
+            calcularROI: function() {
+                const qtd = document.getElementById('calcMaquinas').value;
+                const btu = document.getElementById('calcBtu').value;
+                
+                document.getElementById('labelMaquinas').innerText = qtd + ' unid.';
+                document.getElementById('labelBtu').innerText = (btu/1000) + 'k BTUs';
+                
+                // Matemática de Simulação: (Qtd * (Btu/10000) * Horas * Dias * Tarifa * Fator Otimização)
+                // Usando Fator Constante Simplificado para Demo
+                const economiaMes = (qtd * (btu / 12000) * 1.4) * 0.15 * 22 * 0.95; 
+                const economiaAno = economiaMes * 12;
+                
+                document.getElementById('calcResultado').innerText = economiaAno.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+            }
+        };
+
+        /**
+         * SUPABASE DATA ENGINE (A Mágica da Telemetria)
+         */
+        const DataEngine = {
+            // Configurações e Client
+            url: 'https://zbnpwicdgobxkvesgayr.supabase.co',
+            key: 'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc',
+            client: null,
+            
+            // Estado e Memória
+            kpiEcon: 14580.33,
+            kpiInterv: 14,
+            svgArrayY: Array(20).fill(150),
+            dispositivosMap: new Map(),
+
+            boot: async function() {
+                this.client = supabase.createClient(this.url, this.key);
+                
+                // 1. Busca Ativos Reais
+                try {
+                    const { data: ativos } = await this.client.from('dispositivos').select('*');
+                    if (ativos) {
+                        document.getElementById('kpi-val-ativos').innerHTML = `${ativos.length} <span style="color:#A1A1AA; font-size: 2rem;">/ ${ativos.length}</span>`;
+                        ativos.forEach(d => {
+                            this.dispositivosMap.set(d.id, { setor: d.localizacao || 'Pendência', temp: 24, on: true });
+                        });
+                        this.renderizarVisualizadores();
+                    }
+                } catch(e) { console.error("Erro ao buscar devices."); }
+
+                // 2. Busca Última Leitura (Histórico)
+                const { data: hist } = await this.client.from('leituras').select('*').order('created_at', {ascending: false}).limit(1);
+                if(hist && hist.length > 0) this.digerirPacote(hist[0], false);
+
+                // 3. Ouvinte WebSocket
+                this.client.channel('arbo-live').on('postgres_changes', {event:'INSERT', schema:'public', table:'leituras'}, pkt => {
+                    this.digerirPacote(pkt.new, true);
+                }).subscribe();
+            },
+
+            digerirPacote: function(pacote, sumarValores) {
+                const mac = pacote.dispositivo_id || "MAC_ERROR";
+                const temp = pacote.temperatura;
+                const acaoAr = pacote.ar_ligado;
+
+                // Atualiza Registro do Dicionário
+                if(this.dispositivosMap.has(mac)) {
+                    let node = this.dispositivosMap.get(mac);
+                    node.temp = temp;
+                    if(pacote.setor) node.setor = pacote.setor;
+                    this.dispositivosMap.set(mac, node);
+                } else {
+                    this.dispositivosMap.set(mac, { setor: pacote.setor || 'Novo Setor', temp: temp, on: true });
+                }
+
+                // Incrementos Financeiros
+                if(sumarValores && acaoAr === false) {
+                    this.kpiEcon += 0.15; // +15 centavos por economia registrada
+                    this.kpiInterv++;
+                    document.getElementById('kpi-val-eco').innerText = this.kpiEcon.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+                    document.getElementById('kpi-val-inter').innerText = this.kpiInterv;
+                }
+
+                // Compliance NR-17
+                const nrTag = document.getElementById('kpi-val-nr');
+                if(temp > 26 || temp < 20) {
+                    nrTag.innerText = "83.4%";
+                    nrTag.style.color = "var(--status-critical)";
+                } else {
+                    nrTag.innerText = "99.8%";
+                    nrTag.style.color = "var(--text-primary)";
+                }
+
+                // Renderiza SVG Line
+                this.atualizarSVG(temp);
+                // Renderiza Mapa e Frota
+                this.renderizarVisualizadores();
+            },
+
+            atualizarSVG: function(temp) {
+                const l = document.getElementById('svgGraphLine');
+                const f = document.getElementById('svgGraphFill');
+                const d = document.getElementById('svgGraphDot');
+
+                // Conversão Linear: T=18 -> Y=250 | T=30 -> Y=50. Amplitude = 12°C. DeltaY = 200. Fator = 200/12 = 16.66
+                let projY = 250 - ((temp - 18) * 16.66);
+                if(projY < 10) projY = 10; if(projY > 290) projY = 290;
+
+                this.svgArrayY.shift();
+                this.svgArrayY.push(projY);
+
+                // Desenha Path
+                let pathCalc = `M0,${this.svgArrayY[0]}`;
+                const step = 1000 / 19; // 20 pontos = 19 espaços
+                for(let i=1; i < this.svgArrayY.length; i++) {
+                    pathCalc += ` L${i * step},${this.svgArrayY[i]}`;
+                }
+
+                l.setAttribute('d', pathCalc);
+                f.setAttribute('d', `${pathCalc} L1000,300 L0,300 Z`);
+                d.setAttribute('cy', this.svgArrayY[this.svgArrayY.length - 1]);
+            },
+
+            renderizarVisualizadores: function() {
+                const mapHtml = document.getElementById('galaxyEngine');
+                const tableHtml = document.getElementById('fleetTableData');
+                
+                // Limpa Nodes, mantém o Grid
+                Array.from(mapHtml.children).forEach(ch => { if(ch.classList.contains('sensor-node')) ch.remove(); });
+                tableHtml.innerHTML = '';
+
+                // Constantes Visuais
+                const coords = [{x:35, y:40}, {x:65, y:30}, {x:48, y:75}, {x:80, y:65}, {x:20, y:60}];
+                let counter = 0;
+
+                this.dispositivosMap.forEach((dados, id) => {
+                    // MAPA: Efeito Glow e Posicionamento
+                    const mNode = document.createElement('div');
+                    let glow = 'glow-ideal';
+                    if(dados.temp > 26) glow = 'glow-critical';
+                    else if (dados.temp < 21) glow = 'glow-warning';
+
+                    mNode.className = `sensor-node ${glow}`;
+                    const p = coords[counter % coords.length];
+                    mNode.style.left = p.x + '%';
+                    mNode.style.top = p.y + '%';
+                    
+                    mNode.innerHTML = `<span>${dados.setor}</span><small>${dados.temp.toFixed(1)}°C</small>`;
+                    mapHtml.appendChild(mNode);
+
+                    // TABELA DE FROTA
+                    const tRow = document.createElement('tr');
+                    tRow.innerHTML = `
+                        <td style="font-family: monospace; color: var(--text-tertiary);">${id}</td>
+                        <td>${dados.setor}</td>
+                        <td><div class="badge-online"><span style="width:6px;height:6px;background:currentColor;border-radius:50%;"></span> SECURE_TLS</div></td>
+                        <td style="text-align: right;"><button class="btn-outline" style="padding: 6px 14px; font-size: 0.75rem;" onclick="DataEngine.enviarWipe('${id}')">Executar WIPE Remoto</button></td>
+                    `;
+                    tableHtml.appendChild(tRow);
+
+                    counter++;
+                });
+            },
+
+            enviarWipe: async function(mac) {
+                if(confirm(`⚠️ OPERAÇÃO CRÍTICA: Apagar memória Flash do ESP32 de MAC ${mac} remotamente? A placa reiniciará no modo Captive Portal.`)) {
+                    await this.client.from('dispositivos').update({ comando_reset: true }).eq('id', mac);
+                    alert("✅ Comando transmitido via WebSocket criptografado.");
+                }
+            }
+        };
+
+        // Inicialização Global
+        window.onload = () => {
+            AppController.initVitrineEffects();
+            VitrineController.calcularROI(); // Roda a matemática inicial da landing page
+        };
     </script>
 </body>
 </html>

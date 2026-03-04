@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <!-- CSS ADICIONAL DO DASHBOARD (Branco e Preto Luxuoso) -->
     <style>
         .dashboard-container {
@@ -814,6 +816,8 @@
                     contentLayer.style.display = 'none';
                     corporateDashboard.style.display = 'block';
 
+                    conectarServidorReal();
+
                     // Inicializar primeira aba
                     const viewOverview = document.querySelector('[data-view="view-overview"]');
                     if (viewOverview) viewOverview.click();
@@ -901,50 +905,77 @@
         }
 
         // ================== INDICADORES FINANCEIROS (ROI) ==================
-        let accumulatedSavings = 14580.00;
-        const roiEl = document.getElementById('roiValue');
+       // 1. CONFIGURAÇÃO DE ACESSO AO SERVIDOR
+const _supabaseUrl = 'https://zbnpwicdgobxkvesgayr.supabase.co';
+const _supabaseKey = 'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc';
+const supabaseClient = supabase.createClient(_supabaseUrl, _supabaseKey);
 
-        function updateROI() {
-            // Simula economia de 0.01 a 0.05 centavos a cada intervalo (Tarifa base * kWh)
-            accumulatedSavings += (Math.random() * 0.04 + 0.01);
-            if (roiEl) roiEl.innerHTML = accumulatedSavings.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+let pontosGrafico = Array(20).fill(150); // Array para desenhar a linha
+let economiaAcumulada = 14580.00; // Valor inicial do seu design
+
+// 2. FUNÇÃO QUE "OBRIGA" O SERVIDOR A MANDAR A INFORMAÇÃO
+async function conectarServidorARBO() {
+    console.log("Sincronizando com o servidor...");
+
+    // Pega o último dado que o ESP32 já salvou lá
+    const { data: historico } = await supabaseClient
+        .from('leituras')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(1);
+
+    if (historico && historico.length > 0) {
+        atualizarDesignComDadosReais(historico[0]);
+    }
+
+    // Fica ouvindo se o sensor mandar algo novo agora (Realtime)
+    supabaseClient
+        .channel('arbo-viva')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leituras' }, payload => {
+            atualizarDesignComDadosReais(payload.new);
+        })
+        .subscribe();
+}
+
+// 3. FUNÇÃO QUE DISTRIBUI A INFORMAÇÃO NO SEU HTML
+function atualizarDesignComDadosReais(leitura) {
+    const temp = leitura.temperatura;
+
+    // Atualiza o Número da Temperatura (KPI)
+    const valueEl = document.getElementById('liveConsumptionValue');
+    if (valueEl) valueEl.innerHTML = `${temp} <span style="font-size:1rem;color:#888;">°C</span>`;
+
+    // Atualiza o Gráfico (Desenha a linha baseada na temperatura real)
+    const line = document.getElementById('liveChartLine');
+    const fill = document.getElementById('liveChartFill');
+    const dot = document.getElementById('liveChartDot');
+    
+    pontosGrafico.shift();
+    pontosGrafico.push(300 - (temp - 12) * 15); // Converte temp para posição no gráfico
+    
+    if (line && fill && dot) {
+        let pathD = 'M0,' + pontosGrafico[0];
+        for (let i = 1; i < pontosGrafico.length; i++) { pathD += ' L' + (i * 50) + ',' + pontosGrafico[i]; }
+        line.setAttribute('d', pathD);
+        fill.setAttribute('d', pathD + ' L1000,300 L0,300 Z');
+        dot.setAttribute('cy', pontosGrafico[pontosGrafico.length - 1]);
+    }
+
+    // Atualiza o Cálculo de Economia
+    const roiEl = document.getElementById('roiValue');
+    if (roiEl) {
+        economiaAcumulada += 0.05; // Simula ganho por cada leitura recebida
+        roiEl.innerHTML = economiaAcumulada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    // Atualiza a cor da bolinha do RH no seu Mapa Galáxia
+    const bolhas = document.querySelectorAll('.bubble');
+    bolhas.forEach(bolha => {
+        if (bolha.textContent.includes("RH")) {
+            bolha.className = (temp > 26) ? 'bubble red' : 'bubble green'; // Vermelho se estiver quente
         }
-        setInterval(updateROI, 3000);
-
-        // ================== GRÁFICO TEMPO REAL ==================
-        let consumption = 18.4;
-        const valueEl = document.getElementById('liveConsumptionValue');
-        const line = document.getElementById('liveChartLine');
-        const fill = document.getElementById('liveChartFill');
-        const dot = document.getElementById('liveChartDot');
-        let points = Array(20).fill(150);
-
-        function updateLiveChart() {
-            consumption += (Math.random() * 1.2 - 0.6);
-            if (consumption < 12) consumption = 12;
-            if (consumption > 25) consumption = 25;
-
-            if (valueEl) {
-                valueEl.innerHTML = consumption.toFixed(1) + ' <span style="font-size:1rem;color:#888;font-weight:400;">kWh</span>';
-            }
-
-            points.shift();
-            points.push(300 - (consumption - 12) * 15);
-
-            let pathD = 'M0,' + points[0];
-            for (let i = 1; i < points.length; i++) {
-                pathD += ' L' + (i * 50) + ',' + points[i];
-            }
-            if (line && fill && dot) {
-                line.setAttribute('d', pathD);
-                fill.setAttribute('d', pathD + ' L1000,300 L0,300 Z');
-                dot.setAttribute('cx', '950');
-                dot.setAttribute('cy', points[points.length - 1]);
-            }
-        }
-        setInterval(updateLiveChart, 1800);
-        updateLiveChart();
-
+    });
+}
         // ================== PREENCHIMENTO: GESTÃO DE FROTA ==================
         const fleetData = [
             { id: "A01", dmac: "ESP32-1A2B", locale: "RH", health: "Ótima", connection: "Online" },
@@ -1035,3 +1066,4 @@
 </body>
 
 </html>
+

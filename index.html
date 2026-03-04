@@ -13,35 +13,275 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        .dashboard-container { font-family: 'Inter', system-ui, sans-serif; background: #FFFFFF; color: #111111; min-height: 100vh; animation: fadeIn 0.8s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .dash-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #EBEBEB; padding: 1rem 2rem; display: flex; align-items: center; position: sticky; top: 0; z-index: 100; transition: all 0.3s ease; }
-        .dash-logo-text { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase; }
-        .dash-logo-text span { color: #000000; }
-        .sidebar-menu { position: fixed; left: -320px; top: 0; width: 280px; height: 100vh; background: #FFFFFF; border-right: 1px solid #EBEBEB; box-shadow: 4px 0 30px rgba(0, 0, 0, 0.05); transition: left 0.5s cubic-bezier(0.8, 0, 0.1, 1); z-index: 200; padding-top: 80px; }
-        .sidebar-menu.open { left: 0; }
-        .sidebar-link { display: flex; align-items: center; padding: 1rem 2rem; font-weight: 400; color: #666666; text-decoration: none; transition: all 0.4s ease; position: relative; overflow: hidden; }
-        .sidebar-link::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: #000000; transform: scaleY(0); transition: transform 0.4s ease; }
-        .sidebar-link.active::before, .sidebar-link:hover::before { transform: scaleY(1); }
-        .sidebar-link.active, .sidebar-link:hover { background: rgba(0, 0, 0, 0.03); color: #000000; padding-left: 2.5rem; }
-        .galaxy-map-container { position: relative; height: 82vh; background: #F8F9FA; border-radius: 20px; overflow: hidden; margin: 2rem; box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.02), 0 10px 40px rgba(0, 0, 0, 0.05); border: 1px solid #EBEBEB; }
-        .galaxy-map-container::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, #CCCCCC 1px, transparent 2px), radial-gradient(circle at 50% 70%, #DDDDDD 1px, transparent 2px), radial-gradient(circle at 80% 20%, #BBBBBB 1px, transparent 2px), radial-gradient(circle at 30% 80%, #EEEEEE 1px, transparent 2px); background-size: 80px 80px; opacity: 0.5; animation: twinkle 8s infinite alternate; }
-        @keyframes twinkle { 0% { opacity: 0.3; } 100% { opacity: 0.7; } }
-        .live-pulse { display: inline-block; width: 8px; height: 8px; background-color: #00C853; border-radius: 50%; margin-left: 10px; box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.7); animation: pulse-green 2s infinite; vertical-align: middle; }
-        @keyframes pulse-green { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 200, 83, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 200, 83, 0); } }
-        .bubble { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000000; font-weight: 600; font-size: 0.85rem; box-shadow: 0 0 30px rgba(0, 0, 0, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.05); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; backdrop-filter: blur(4px); border: 1px solid rgba(0, 0, 0, 0.1); }
-        .bubble:hover { transform: scale(1.3) translateY(-10px); box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.1); z-index: 10; }
+        .dashboard-container {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #FFFFFF;
+            color: #111111;
+            min-height: 100vh;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .dash-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #EBEBEB;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .dash-logo-text {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .dash-logo-text span {
+            color: #000000;
+        }
+
+        /* Sidebar */
+        .sidebar-menu {
+            position: fixed;
+            left: -320px;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: #FFFFFF;
+            border-right: 1px solid #EBEBEB;
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.05);
+            transition: left 0.5s cubic-bezier(0.8, 0, 0.1, 1);
+            z-index: 200;
+            padding-top: 80px;
+        }
+
+        .sidebar-menu.open {
+            left: 0;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 2rem;
+            font-weight: 400;
+            color: #666666;
+            text-decoration: none;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: #000000;
+            transform: scaleY(0);
+            transition: transform 0.4s ease;
+        }
+
+        .sidebar-link.active::before,
+        .sidebar-link:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-link.active,
+        .sidebar-link:hover {
+            background: rgba(0, 0, 0, 0.03);
+            color: #000000;
+            padding-left: 2.5rem;
+        }
+
+        /* Mapa Galáxia */
+        .galaxy-map-container {
+            position: relative;
+            height: 82vh;
+            background: #F8F9FA;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 2rem;
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.02), 0 10px 40px rgba(0, 0, 0, 0.05);
+            border: 1px solid #EBEBEB;
+        }
+
+        .galaxy-map-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 30%, #CCCCCC 1px, transparent 2px),
+                radial-gradient(circle at 50% 70%, #DDDDDD 1px, transparent 2px),
+                radial-gradient(circle at 80% 20%, #BBBBBB 1px, transparent 2px),
+                radial-gradient(circle at 30% 80%, #EEEEEE 1px, transparent 2px);
+            background-size: 80px 80px;
+            opacity: 0.5;
+            animation: twinkle 8s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Logo Pulse Effect */
+        .live-pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #00C853;
+            border-radius: 50%;
+            margin-left: 10px;
+            box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.7);
+            animation: pulse-green 2s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 200, 83, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 200, 83, 0); }
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000000;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .bubble:hover {
+            transform: scale(1.3) translateY(-10px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
         .bubble.green { background: rgba(0, 0, 0, 0.9); color: #FFFFFF; }
         .bubble.yellow { background: rgba(212, 175, 55, 0.9); color: #FFFFFF; }
         .bubble.red { background: rgba(255, 59, 92, 0.9); color: #FFFFFF; }
-        .tooltip { position: absolute; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid #EEEEEE; border-radius: 12px; padding: 16px 20px; font-size: 0.95rem; color: #111111; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); pointer-events: none; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 300; white-space: nowrap; transform: translateY(10px); }
-        .dash-section { padding: 2rem; animation: slideUp 0.6s ease forwards; opacity: 0; }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #EEEEEE;
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-size: 0.95rem;
+            color: #111111;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 300;
+            white-space: nowrap;
+            transform: translateY(10px);
+        }
+
+        /* Gráfico / Sections */
+        .dash-section {
+            padding: 2rem;
+            animation: slideUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
         .dash-section:nth-child(2) { animation-delay: 0.2s; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .live-chart-wrapper { background: linear-gradient(145deg, #FFFFFF, #F8F9FA); border: 1px solid #EBEBEB; border-radius: 20px; padding: 2.5rem; margin: 2rem 0; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05); transition: transform 0.4s ease; }
-        .kpi-card { background: #FFFFFF; border: 1px solid #EBEBEB; border-radius: 16px; padding: 2rem; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); }
-        .nr17-stamp { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 50px; border: 1px solid #000000; color: #000000; background: rgba(0, 0, 0, 0.05); font-weight: 600; font-size: 0.9rem; margin-bottom: 2rem; letter-spacing: 1px; }
-        .btn-sair { background: transparent; border: 1px solid #CCCCCC; color: #111111; padding: 8px 24px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .live-chart-wrapper {
+            background: linear-gradient(145deg, #FFFFFF, #F8F9FA);
+            border: 1px solid #EBEBEB;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+            transition: transform 0.4s ease;
+        }
+
+        .live-chart-wrapper:hover {
+            transform: translateY(-5px);
+            border-color: #CCCCCC;
+        }
+
+        .kpi-card {
+            background: #FFFFFF;
+            border: 1px solid #EBEBEB;
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .kpi-card:hover {
+            border-color: #000000;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .kpi-val.dark { color: #111111; }
+        .kpi-val.green { color: #000000; }
+        .kpi-val-small.dark { color: #111111; }
+        .kpi-val-small.green { color: #000000; }
+
+        .map-header { color: #111111; margin: 2rem; }
+        .map-legend { margin-top: 10px; }
+        .map-legend span { margin-right: 1.5rem; font-weight: 300; letter-spacing: 1px; color: #555555; }
+
+        .gov-header { margin-bottom: 2rem; }
+        .gov-header .dash-title { color: #111111; font-size: 2.5rem; letter-spacing: -1px; font-weight: 300; margin-bottom: 0.5rem; }
+        .gov-header .dash-intro { color: #666666; font-size: 1.1rem; }
+
+        .nr17-stamp {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid #000000;
+            color: #000000;
+            background: rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .nr17-stamp .stamp-icon { color: #000000; }
+
+        .btn-sair {
+            background: transparent;
+            border: 1px solid #CCCCCC;
+            color: #111111;
+            padding: 8px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
         .btn-sair:hover { color: #FFFFFF; background: #000000; border-color: #000000; }
         .menu-toggle .bar { background: #111111; }
     </style>
@@ -76,24 +316,14 @@
                 </div>
             </div>
         </section>
-
-        <section class="panel design-section">
-            <div class="design-grid">
-                <div class="text-block reveal">
-                    <p class="section-label">THE DESIGN</p>
-                    <h2>Estética Biofílica.<br>Inteligência Invisível.</h2>
-                    <p class="description">Um item de luxo para escritórios modernos. O fim dos termostatos industriais. O início da elegância responsiva.</p>
-                </div>
-            </div>
-        </section>
-        </main>
+    </main>
 
     <div id="loginModal" class="modal-overlay">
-        <div class="modal-content" style="background: #FFFFFF; color: #111111; border: 1px solid #EEEEEE; box-shadow: 0 40px 100px rgba(0,0,0,0.1);">
-            <button class="close-modal" id="closeModal" style="color: #666666;">&times;</button>
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
             <div class="modal-header">
                 <h2>Acesso Corporativo</h2>
-                <p>Insira o seu token de segurança.</p>
+                <p>Insira o seu token de segurança para acessar o painel de governança.</p>
             </div>
             <form id="loginForm" class="login-form">
                 <input type="text" id="securityToken" placeholder="A.R.B.O. Token" required autocomplete="off">
@@ -105,9 +335,15 @@
 
     <div id="corporateDashboard" class="dashboard-container" style="display: none;">
         <header class="dash-header">
-            <button id="menuToggleBtn" class="menu-toggle"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button>
-            <div class="dash-logo-text">A.R.B.O. <span>CORPORATE</span><span class="live-pulse"></span></div>
-            <button id="logoutBtn" class="btn-sair">Sair</button>
+            <div class="dash-header-left">
+                <button id="menuToggleBtn" class="menu-toggle"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button>
+            </div>
+            <div class="dash-header-center">
+                <div class="dash-logo-text">A.R.B.O. <span>CORPORATE</span><span class="live-pulse"></span></div>
+            </div>
+            <div class="dash-header-right">
+                <button id="logoutBtn" class="btn-sair">Sair</button>
+            </div>
         </header>
 
         <div id="sidebarMenu" class="sidebar-menu">
@@ -121,16 +357,19 @@
             </div>
         </div>
 
-        <div class="dash-content">
+        <div class="dash-content" id="dashContentArea">
             <div id="view-overview" class="dash-view active-view">
                 <section class="dash-section gov-report">
-                    <h1 class="dash-title">Visão Geral</h1>
+                    <div class="gov-header">
+                        <h1 class="dash-title">Visão Geral</h1>
+                        <p class="dash-intro">O fim dos termostatos industriais. O início da eficiência responsiva.</p>
+                    </div>
                     <div class="nr17-stamp">● NR-17: AMBIENTE CONFORME</div>
                 </section>
                 <section class="dash-section">
                     <div class="kpi-grid">
                         <div class="kpi-card">
-                            <span class="kpi-title">INVESTIMENTO ACUMULADO</span>
+                            <span class="kpi-title">ECONOMIA TOTAL ACUMULADA</span>
                             <strong class="kpi-val green" id="roiValue">R$ 14.580,00</strong>
                         </div>
                         <div class="kpi-card">
@@ -141,13 +380,13 @@
                 </section>
             </div>
 
-            <div id="view-map" class="dash-view">
+            <div id="view-map" class="galaxy-map-view" style="display:none; width:100%; height:80vh;">
                 <div id="galaxyMap" class="galaxy-map-container"></div>
             </div>
 
             <div id="view-chart" class="dash-view">
                 <div class="live-chart-wrapper">
-                    <svg viewBox="0 0 1000 300" class="minimal-chart" preserveAspectRatio="none">
+                    <svg viewBox="0 0 1000 300" class="minimal-chart" preserveAspectRatio="none" style="width:100%; height:300px;">
                         <path id="liveChartFill" d="M0,300 L0,300 L1000,300 Z" fill="rgba(0,0,0,0.05)" />
                         <path id="liveChartLine" d="M0,150 L1000,150" fill="none" stroke="#000" stroke-width="4" />
                         <circle id="liveChartDot" cx="1000" cy="150" r="10" fill="#FFF" stroke="#000" stroke-width="4" />
@@ -158,98 +397,104 @@
     </div>
 
     <script>
-        // 1. CONFIGURAÇÃO SERVIDOR
+        /* ================== CONFIGURAÇÃO SUPABASE ================== */
         const _supabaseUrl = 'https://zbnpwicdgobxkvesgayr.supabase.co';
         const _supabaseKey = 'sb_publishable_Bw_NeyC1z_bHKnKOYjns0w_wAiAw5Lc';
         const supabaseClient = supabase.createClient(_supabaseUrl, _supabaseKey);
 
-        let economiaBase = 14580.00;
-        let pontosGrafico = Array(20).fill(150);
+        let accumulatedSavings = 14580.00;
+        let points = Array(20).fill(150);
 
-        // 2. FUNÇÃO QUE BUSCA E ESCUTA O SERVIDOR
-        async function conectarServidorReal() {
-            console.log("A.R.B.O. sincronizando com o servidor...");
+        /* ================== LOGICA DE RECEBIMENTO DO SERVIDOR ================== */
+        async function conectarAoServidorArbo() {
+            console.log("Iniciando escuta real do servidor...");
 
-            // Puxa o último dado para não começar vazio
+            // 1. Puxa a última leitura para o Dashboard não abrir vazio
             const { data: historico } = await supabaseClient
                 .from('leituras')
                 .select('*')
                 .order('id', { ascending: false })
                 .limit(1);
 
-            if (historico && historico.length > 0) atualizarInterface(historico[0]);
+            if (historico && historico.length > 0) {
+                atualizarInterfaceReal(historico[0]);
+            }
 
-            // Escuta novas entradas do ESP32 em tempo real
+            // 2. Fica ouvindo o servidor em Tempo Real (Realtime)
             supabaseClient
-                .channel('fluxo-arbo')
+                .channel('canal-viva')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leituras' }, payload => {
-                    atualizarInterface(payload.new);
+                    atualizarInterfaceReal(payload.new);
                 })
                 .subscribe();
         }
 
-        // 3. FUNÇÃO QUE ATUALIZA O SEU DESIGN COM OS DADOS REAIS
-        function atualizarInterface(leitura) {
+        function atualizarInterfaceReal(leitura) {
             const temp = leitura.temperatura;
 
-            // Atualiza KPI Temperatura
-            document.getElementById('liveConsumptionValue').innerHTML = `${temp} <span style="font-size:1.2rem;">°C</span>`;
+            // Atualiza Texto da Temperatura
+            const valueEl = document.getElementById('liveConsumptionValue');
+            if (valueEl) valueEl.innerHTML = `${temp} <span style="font-size:1.2rem;color:#888;">°C</span>`;
 
-            // Atualiza ROI (Soma 5 centavos por leitura real para mostrar "investimento" ativo)
-            economiaBase += 0.05;
-            document.getElementById('roiValue').innerHTML = economiaBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            // Atualiza Economia (Simulação de cálculo baseada em dado real)
+            accumulatedSavings += 0.05;
+            document.getElementById('roiValue').innerHTML = accumulatedSavings.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-            // Atualiza o desenho do Gráfico SVG
+            // Atualiza o Gráfico Real
             const line = document.getElementById('liveChartLine');
             const fill = document.getElementById('liveChartFill');
             const dot = document.getElementById('liveChartDot');
-            pontosGrafico.shift();
-            pontosGrafico.push(300 - (temp - 12) * 15);
-            let pathD = 'M0,' + pontosGrafico[0];
-            for (let i = 1; i < pontosGrafico.length; i++) pathD += ' L' + (i * 50) + ',' + pontosGrafico[i];
-            line.setAttribute('d', pathD);
-            fill.setAttribute('d', pathD + ' L1000,300 L0,300 Z');
-            dot.setAttribute('cy', pontosGrafico[pontosGrafico.length - 1]);
+            
+            points.shift();
+            points.push(300 - (temp - 12) * 15); // Escala para o SVG do seu design
+            
+            let pathD = 'M0,' + points[0];
+            for (let i = 1; i < points.length; i++) { pathD += ' L' + (i * 50) + ',' + points[i]; }
+            
+            if (line && fill && dot) {
+                line.setAttribute('d', pathD);
+                fill.setAttribute('d', pathD + ' L1000,300 L0,300 Z');
+                dot.setAttribute('cy', points[points.length - 1]);
+            }
 
-            // Bolinha do Mapa Galáxia
-            const map = document.getElementById('galaxyMap');
-            map.innerHTML = `<div class="bubble ${temp > 26 ? 'red' : 'green'}" style="width:120px; height:120px; left:40%; top:30%;">RH: ${temp}°C</div>`;
+            // Atualiza a bolinha do Mapa (Exemplo para RH)
+            const mapContainer = document.getElementById('galaxyMap');
+            if (mapContainer) {
+                mapContainer.innerHTML = `<div class="bubble ${temp > 26 ? 'red' : 'green'}" style="width:120px; height:120px; left:20%; top:30%;">RH: ${temp}°C</div>`;
+            }
         }
 
-        // 4. LÓGICA DE INTERFACE E LOGIN
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const token = document.getElementById('securityToken').value.toUpperCase().trim();
-            
-            // Busca a empresa pelo token no banco
-            const { data: empresa } = await supabaseClient
-                .from('empresas')
-                .select('*')
-                .eq('id_acesso', token)
-                .single();
+        /* ================== LOGICA DE INTERFACE (ORIGINAL) ================== */
+        const menuToggle = document.getElementById('menuToggleBtn');
+        const sidebar = document.getElementById('sidebarMenu');
+        const closeSidebar = document.getElementById('closeSidebarBtn');
 
-            if (empresa || token === "ARBO2026") {
+        if(menuToggle) menuToggle.addEventListener('click', () => sidebar.classList.add('open'));
+        if(closeSidebar) closeSidebar.addEventListener('click', () => sidebar.classList.remove('open'));
+
+        document.getElementById('loginForm').addEventListener('submit', e => {
+            e.preventDefault();
+            if (document.getElementById('securityToken').value.toUpperCase().trim() === 'ARBO2026') {
                 document.getElementById('loginModal').classList.remove('active');
                 document.querySelector('.content-layer').style.display = 'none';
                 document.getElementById('corporateDashboard').style.display = 'block';
-                conectarServidorReal();
+                
+                // ATIVA A CONEXÃO REAL AQUI
+                conectarAoServidorArbo();
             } else {
-                document.getElementById('loginFeedback').innerText = "Token Inválido.";
+                document.getElementById('loginFeedback').innerHTML = '<span style="color:red;">Token Inválido.</span>';
             }
         });
 
-        // 5. SCRIPTS DE DESIGN (SCROLL E REVEAL)
+        // Eventos de Vitrine e Reveal mantidos
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
         }, { threshold: 0.15 });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        // Botões de Menu e Sair
-        document.querySelector('.corporate-login').addEventListener('click', e => { e.preventDefault(); document.getElementById('loginModal').classList.add('active'); });
+        document.querySelector('.corporate-login').addEventListener('click', () => document.getElementById('loginModal').classList.add('active'));
         document.getElementById('closeModal').addEventListener('click', () => document.getElementById('loginModal').classList.remove('active'));
         document.getElementById('logoutBtn').addEventListener('click', () => location.reload());
-        document.getElementById('menuToggleBtn').addEventListener('click', () => document.getElementById('sidebarMenu').classList.add('open'));
-        document.getElementById('closeSidebarBtn').addEventListener('click', () => document.getElementById('sidebarMenu').classList.remove('open'));
     </script>
 </body>
 </html>
